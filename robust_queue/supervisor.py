@@ -1,0 +1,166 @@
+import logging
+import os
+import signal
+import sys
+from datetime import timedelta
+
+from robust_queue import timer
+from robust_queue.configuration import Configuration
+from robust_queue.maintenance import Maintenance
+from robust_queue.models.process import Process
+from robust_queue.processes.base import Base
+from robust_queue.processes.interruptible import Interruptible
+from robust_queue.processes.pidfiled import Pidfiled
+from robust_queue.processes.registrable import Registrable
+from robust_queue.signals import Signals
+
+logger = logging.getLogger("robust_queue")
+
+
+class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Base):
+    @classmethod
+    def launch(cls, **kwargs):
+        configuration = Configuration(**kwargs)
+        if not configuration.is_valid:
+            raise ValueError("Invalid configuration")
+
+        return cls(configuration).start()
+
+    def __init__(self, configuration):
+        self.configuration = configuration
+        self.forks = {}
+        self.configured_processes = {}
+
+        super().__init__()
+
+    def start(self):
+        logger.info("Starting supervisor with PID %d", self.pid)
+        self.boot()
+        self.start_processes()
+        self.launch_maintenance_task()
+        self.supervise()
+
+    def boot(self):
+        super().boot()
+        # TODO: sync std streams
+
+    def start_processes(self):
+        for process in self.configuration.configured_processes:
+            self.start_process(process)
+
+    def supervise(self):
+        try:
+            while True:
+                if self.is_stopped:
+                    break
+
+                self.set_procline()
+                self.process_signal_queue()
+
+                if not self.is_stopped:
+                    self.reap_and_replace_terminated_forks()
+                    self.interruptible_sleep(timedelta(seconds=1))
+        finally:
+            self.shutdown()
+
+    def start_process(self, process: Configuration.Process):
+        logger.info(
+            "Starting process %s (called from PID %d, should be supervisor)",
+            process,
+            os.getpid(),
+        )
+        instance = process.instantiate()
+        instance.supervisor = self.process
+        instance.mode = "fork"
+
+        if (pid := os.fork()) == 0:
+            # child
+            logger.info("Child process %d starting %s", os.getpid(), instance.name)
+            instance.start()
+            sys.exit(0)  # Ensure child process exits after instance.start()
+
+        # parent
+        logger.info(
+            "Parent process %d forked child %d for %s", os.getpid(), pid, process.kind
+        )
+        self.configured_processes[pid] = process
+        self.forks[pid] = instance
+
+    def set_procline(self):
+        pass
+
+    def terminate_gracefully(self):
+        logger.info("terminating gracefully")
+        self.term_forks()
+
+        for _ in timer.wait_until(
+            timedelta(seconds=2), lambda: self.are_all_forks_terminated
+        ):
+            self.reap_terminated_forks()
+
+        if not self.are_all_forks_terminated:
+            logger.warning("shutdown timeout exceeded")
+            self.terminate_immediately()
+
+    def terminate_immediately(self):
+        logger.warning("terminating immediately")
+        self.quit_forks()
+
+    def shutdown(self):
+        self.stop_maintenance_task()
+        super().shutdown()
+
+    def term_forks(self):
+        self.signal_processes(self.forks.keys(), signal.SIGTERM)
+
+    def quit_forks(self):
+        self.signal_processes(self.forks.keys(), signal.SIGQUIT)
+
+    def reap_and_replace_terminated_forks(self):
+        while True:
+            try:
+                pid, exitcode = os.waitpid(-1, os.WNOHANG)
+            except ChildProcessError:
+                break
+            else:
+                if not pid:
+                    break
+
+            self.replace_fork(pid, exitcode)
+
+    def reap_terminated_forks(self):
+        while True:
+            try:
+                pid, wait_status = os.waitpid(-1, os.WNOHANG)
+            except ChildProcessError:
+                break
+
+            if not pid:
+                break
+
+            terminated_fork = self.forks.pop(pid, None)
+            is_exited = os.WIFEXITED(wait_status)
+            exit_status = os.WEXITSTATUS(wait_status)
+
+            if terminated_fork and (not is_exited or exit_status > 0):
+                self.handle_claimed_jobs_by(terminated_fork, wait_status)
+
+            self.configured_processes.pop(pid)
+
+    def replace_fork(self, pid, exitcode):
+        logger.info("replacing fork %s due to exit code %s", pid, exitcode)
+        if terminated_fork := self.forks.pop(pid, None):
+            self.handle_claimed_jobs_by(terminated_fork, exitcode)
+            self.start_process(self.configured_processes.pop(pid))
+
+    def handle_claimed_jobs_by(self, terminated_fork, exitcode):
+        registered_process: Process = self.process.supervisees.filter(
+            name=terminated_fork.name
+        ).first()
+        if registered_process:
+            error = str(exitcode)  # parse exit code
+            registered_process.fail_all_claimed_executions_with(error)
+
+    @property
+    def are_all_forks_terminated(self):
+        return len(self.forks) == 0

@@ -1,0 +1,23 @@
+{
+    "cSpell.words": [
+        "interruptible",
+        "Interruptible",
+        "retryable",
+        "Retryable",
+        "schedulable",
+        "Schedulable",
+        "supervisees"
+    ],
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "editor.formatOnSave": true,
+    "files.exclude": {
+        "**/.DS_Store": true,
+        "**/__pycache__": true,
+        ".venv": true,
+        ".ruff_cache": true,
+        "*.egg-info": true,
+        ".coverage": true
+    }
+}
