@@ -2,9 +2,11 @@
 
 ## TODOs
 
-- [ ] Enqueue jobs
-- [ ] Get the dispatcher to dispatch
-- [ ] Get the worker to work
+- [x] Enqueue jobs
+- [x] Get the dispatcher to dispatch
+- [x] Get the worker to work
+- [ ] Maintenance
+- [ ] Workers per queue
 - [ ] Use postgresql
 - [ ] Reorganize code
 - [ ] Recurring tasks

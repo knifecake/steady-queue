@@ -53,3 +53,11 @@ class ScheduledExecution(Dispatching, Execution):
                 return 0
             else:
                 return cls.dispatch_jobs(job_ids)
+
+    @classmethod
+    def attributes_from_job(cls, job):
+        return {
+            "queue_name": job.queue_name,
+            "priority": job.priority,
+            "scheduled_at": job.scheduled_at,
+        }

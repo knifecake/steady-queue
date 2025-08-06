@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_tasks",
     "robust_queue",
+    "dummy",
 ]
 
 MIDDLEWARE = [
@@ -86,6 +88,15 @@ DATABASES = {
         "OPTIONS": {
             "init_command": "PRAGMA journal_mode=WAL",
         },
+    }
+}
+
+# Tasks
+TASKS = {
+    "default": {
+        "BACKEND": "robust_queue.django.backend.RobustQueueBackend",
+        "QUEUES": ["default"],
+        "OPTIONS": {},
     }
 }
 

@@ -41,7 +41,7 @@ class Executable(Schedulable, Retryable):
 
     @classmethod
     def dispatch_all_at_once(cls, jobs):
-        ReadyExecution.objects.create_all_from_jobs(jobs)
+        return ReadyExecution.objects.create_all_from_jobs(jobs)
 
     @classmethod
     def dispatch_all_one_by_one(cls, jobs):
@@ -91,7 +91,10 @@ class Executable(Schedulable, Retryable):
 
     @property
     def ready(self):
-        ReadyExecution.get_or_create(job=self)
+        return ReadyExecution.objects.get_or_create(
+            job=self,
+            defaults=ReadyExecution.attributes_from_job(self),
+        )
 
     @property
     def execution(self):

@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (
     BlockedExecution,
     ClaimedExecution,
+    FailedExecution,
     Job,
     Pause,
     Process,
@@ -33,6 +34,11 @@ class BaseAdmin(admin.ModelAdmin):
 
 @admin.register(ReadyExecution)
 class ReadyExecutionAdmin(ReadOnlyAdminMixin, BaseAdmin):
+    list_display = ("job_id", "queue_name", "priority", "created_at")
+
+
+@admin.register(FailedExecution)
+class FailedExecutionAdmin(ReadOnlyAdminMixin, BaseAdmin):
     pass
 
 

@@ -1,6 +1,10 @@
 from django.db import models
 
-from .execution import Execution
+from .execution import Execution, ExecutionQuerySet
+
+
+class BlockedExecutionQuerySet(ExecutionQuerySet):
+    pass
 
 
 class BlockedExecution(Execution):
@@ -17,6 +21,8 @@ class BlockedExecution(Execution):
                 name="ix_rq_blocked_for_maintenance",
             ),
         )
+
+    objects = BlockedExecutionQuerySet.as_manager()
 
     job = models.OneToOneField(
         "Job",

@@ -7,6 +7,8 @@ class Dispatching:
         jobs = Job.objects.filter(id__in=job_ids)
         dispatched_jobs = Job.dispatch_all(jobs)
 
-        deleted, _ = cls.objects.filter(job__in=dispatched_jobs).delete()
+        deleted, _ = cls.objects.filter(
+            job_id__in=map(lambda j: j.id, dispatched_jobs)
+        ).delete()
 
         return deleted

@@ -1,3 +1,5 @@
+from signal import default_int_handler
+
 from django.db import models
 from django.utils import timezone
 
@@ -31,7 +33,10 @@ class Schedulable:
         return self.scheduled_execution is not None
 
     def schedule(self):
-        return ScheduledExecution.objects.get_or_create(job=self)
+        return ScheduledExecution.objects.get_or_create(
+            job=self,
+            defaults=ScheduledExecution.attributes_from_job(self),
+        )
 
     @property
     def execution(self):

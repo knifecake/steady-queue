@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "django>=5.2",
+    "django-tasks>=0.8.1",
 ]
 
 [project.scripts]
@@ -28,6 +29,7 @@ include = ["robust_queue*"]
 
 [dependency-groups]
 dev = [
+    "ipython>=9.4.0",
     "pre-commit>=4.0.1",
     "psycopg[binary,pool]>=3.2.6",
     "ruff>=0.11.6",

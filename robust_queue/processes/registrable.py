@@ -69,6 +69,7 @@ class Registrable(Base):
             self.process = None
             self.wake_up()
 
+    @property
     def process_id(self):
         if not self.is_registered:
             return None

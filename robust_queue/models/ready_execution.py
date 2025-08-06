@@ -1,6 +1,54 @@
-from django.db import models
+from decimal import Clamped
 
-from .execution import Execution
+from django.db import models, transaction
+
+from .execution import Execution, ExecutionQuerySet
+
+
+class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
+    def create_all_from_jobs(self, jobs):
+        jobs = [
+            self.model(job=job, **self.model.attributes_from_job(job)) for job in jobs
+        ]
+        return self.bulk_create(jobs)  # TODO: conflicts?
+
+    def claim(self, queue_list, limit, process_id):
+        # TODO: queue selection
+        return self.select_and_lock(process_id, limit)
+
+    def select_and_lock(self, process_id, limit) -> models.QuerySet:
+        if limit <= 0:
+            return self.none()
+
+        with transaction.atomic():
+            candidates = self.select_candidates(limit)
+            claimed = candidates.lock_candidates(process_id)
+            return claimed
+
+    def select_candidates(self, limit):
+        return (
+            self.ordered()
+            .select_for_update(skip_locked=True)
+            .only("id", "job_id")[:limit]
+        )
+
+    def lock_candidates(self, process_id):
+        from robust_queue.models.claimed_execution import ClaimedExecution
+
+        claimed_executions = list(
+            ClaimedExecution.objects.claiming(
+                self.values_list("job_id", flat=True), process_id
+            )
+        )
+
+        for claimed in claimed_executions:
+            self.model.objects.filter(job_id=claimed.job_id).delete()
+
+        return claimed_executions
+
+    def aggregated_count_across_queues(self, queues: list[str]) -> int:
+        # TODO: queue selection
+        return self.count()
 
 
 class ReadyExecution(Execution):
@@ -15,6 +63,8 @@ class ReadyExecution(Execution):
             ),
         )
 
+    objects = ReadyExecutionQuerySet.as_manager()
+
     job = models.OneToOneField(
         "Job",
         verbose_name="job",
@@ -28,3 +78,10 @@ class ReadyExecution(Execution):
     @property
     def type(self):
         return "ready"
+
+    @classmethod
+    def attributes_from_job(cls, job):
+        return {
+            "queue_name": job.queue_name,
+            "priority": job.priority,
+        }

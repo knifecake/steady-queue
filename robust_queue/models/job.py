@@ -1,11 +1,16 @@
 from django.db import models
 from django.utils import timezone
 
-from robust_queue.models.executable import Executable
+from robust_queue.django.task import RobustQueueTask
+from robust_queue.models.executable import Executable, ExecutableQuerySet
 from robust_queue.task import BaseTask
 
 from .base import BaseModel
 from .mixins import UpdatedAtMixin
+
+
+class JobQuerySet(ExecutableQuerySet, models.QuerySet):
+    pass
 
 
 class Job(Executable, UpdatedAtMixin, BaseModel):
@@ -29,6 +34,8 @@ class Job(Executable, UpdatedAtMixin, BaseModel):
             ),
         )
 
+    objects = JobQuerySet.as_manager()
+
     queue_name = models.CharField(max_length=255, verbose_name="queue name")
     class_name = models.CharField(max_length=255, verbose_name="class name")
     arguments = models.JSONField(verbose_name="arguments")
@@ -47,14 +54,20 @@ class Job(Executable, UpdatedAtMixin, BaseModel):
     )
 
     @classmethod
-    def enqueue(cls, task: BaseTask, scheduled_at: timezone.datetime = None) -> None:
-        serialized_task = task.serialize()
+    def enqueue(
+        cls, task: RobustQueueTask, scheduled_at: timezone.datetime = None
+    ) -> "Job":
+        if scheduled_at is None:
+            scheduled_at = timezone.now()
+
         job = cls(
-            queue_name=serialized_task["queue_name"],
-            class_name=serialized_task["class_name"],
-            arguments=serialized_task["arguments"],
-            priority=serialized_task["priority"],
+            queue_name=task.queue_name,
+            class_name=task.module_path,
+            arguments=task.serialize(),
+            priority=task.priority,
             scheduled_at=scheduled_at,
-            django_task_id=serialized_task["job_id"],
+            django_task_id=task.id,
         )
         job.save()
+        job.prepare_for_execution()
+        return job
