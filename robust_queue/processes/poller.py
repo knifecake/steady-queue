@@ -25,14 +25,17 @@ class Poller(Runnable, Interruptible, Registrable, Base):
         }
 
     def run(self):
+        logger.info(
+            "%s polling every %f seconds",
+            self.kind,
+            self.polling_interval.total_seconds(),
+        )
         self.start_loop()
 
     def start_loop(self):
         try:
             while True:
-                logger.debug("poller started loop")
                 if self.is_shutting_down:
-                    logger.info("poller shutting down")
                     break
 
                 delay = self.poll()

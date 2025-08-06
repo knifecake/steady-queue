@@ -28,6 +28,8 @@ class ScheduledExecution(Dispatching, Execution):
             ),
         )
 
+    objects = ScheduledExecutionQuerySet.as_manager()
+
     job = models.OneToOneField(
         "Job",
         verbose_name="job",

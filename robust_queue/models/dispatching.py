@@ -1,15 +1,12 @@
 class Dispatching:
     @classmethod
-    def dispatch_jobs(cls, job_ids: list[str]) -> None:
+    def dispatch_jobs(cls, job_ids: list[str]) -> int:
+        # TODO: can we pass a Job queryset directly?
         from robust_queue.models.job import Job
 
         jobs = Job.objects.filter(id__in=job_ids)
+        dispatched_jobs = Job.dispatch_all(jobs)
 
-        for dispatched_job_id in Job.dispatch_all(jobs):
-            job_ids = Job.objects.filter(job_id=dispatched_job_id).values_list(
-                "id", flat=True
-            )
-            Job.objects.filter(id__in=job_ids).delete()
+        deleted, _ = cls.objects.filter(job__in=dispatched_jobs).delete()
 
-        # TODO: check return
-        return len(jobs)
+        return deleted
