@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from datetime import timedelta
-
-from django.db import connection
+from typing import Optional
 
 from robust_queue.processes.runnable import Runnable
 
@@ -22,9 +21,27 @@ class Configuration:
         concurrency_maintenance_interval: timedelta = timedelta(minutes=5)
 
     @dataclass
+    class RecurringTaskConfiguration:
+        key: str
+        class_name: Optional[str] = None
+        command: Optional[str] = None
+        arguments: Optional[dict] = None
+        schedule: Optional[str] = None
+        queue_name: Optional[str] = None
+        priority: Optional[int] = None
+        description: Optional[str] = None
+
+        @classmethod
+        def discover(cls) -> list["Configuration.RecurringTaskConfiguration"]:
+            from robust_queue.django.recurring_task import configurations
+
+            return configurations
+
+    @dataclass
     class ConfigurationOptions:
         workers: list["Configuration.WorkerConfiguration"]
         dispatchers: list["Configuration.DispatcherConfiguration"]
+        recurring_tasks: list["Configuration.RecurringTaskConfiguration"]
         only_work: bool = False
         skip_recurring: bool = False
 
@@ -32,6 +49,8 @@ class Configuration:
             self,
             workers: list["Configuration.WorkerConfiguration"] | None = None,
             dispatchers: list["Configuration.DispatcherConfiguration"] | None = None,
+            recurring_tasks: list["Configuration.RecurringTaskConfiguration"]
+            | None = None,
             only_work: bool = False,
             skip_recurring: bool = False,
         ):
@@ -41,8 +60,12 @@ class Configuration:
             if dispatchers is None:
                 dispatchers = [Configuration.DispatcherConfiguration()]
 
+            if recurring_tasks is None:
+                recurring_tasks = Configuration.RecurringTaskConfiguration.discover()
+
             self.workers = workers
             self.dispatchers = dispatchers
+            self.recurring_tasks = recurring_tasks
             self.only_work = only_work
             self.skip_recurring = skip_recurring
 
@@ -63,7 +86,7 @@ class Configuration:
             elif self.kind == "scheduler":
                 from robust_queue.scheduler import Scheduler
 
-                return Scheduler(options=self.attributes)
+                return Scheduler(**self.attributes)
 
             raise ValueError(f"Invalid process kind: {self.kind}")
 
@@ -98,8 +121,12 @@ class Configuration:
 
     @property
     def schedulers(self):
-        # TODO: implement
-        return []
+        return [
+            self.Process(
+                kind="scheduler",
+                attributes={"recurring_tasks": self.options.recurring_tasks},
+            )
+        ]
 
     @property
     def is_valid(self):

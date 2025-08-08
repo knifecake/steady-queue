@@ -1,6 +1,7 @@
 import logging
 
 from django.core.management.base import BaseCommand
+from django.utils.module_loading import autodiscover_modules
 
 from robust_queue.supervisor import Supervisor
 
@@ -12,5 +13,15 @@ logger.addHandler(logging.StreamHandler())
 class Command(BaseCommand):
     help = "Run the robust queue supervisor"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--disable-autoload",
+            action="store_true",
+            help="Disable autoloading of tasks modules to automatically register recurring tasks",
+        )
+
     def handle(self, *args, **options):
+        if not options.get("disable_autoload"):
+            autodiscover_modules("tasks")
+
         Supervisor.launch()

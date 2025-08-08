@@ -61,12 +61,12 @@ class ScheduledExecutionAdmin(ReadOnlyAdminMixin, BaseAdmin):
 
 @admin.register(RecurringExecution)
 class RecurringExecutionAdmin(ReadOnlyAdminMixin, BaseAdmin):
-    pass
+    list_display = ("task__key", "run_at")
 
 
 @admin.register(RecurringTask)
 class RecurringTaskAdmin(ReadOnlyAdminMixin, BaseAdmin):
-    pass
+    list_display = ("key", "schedule", "class_name", "queue_name", "priority")
 
 
 @admin.register(Pause)

@@ -1,5 +1,28 @@
-from .execution import Execution
+from contextlib import contextmanager
+
 from django.db import models
+from django_tasks import TaskResult
+
+from .execution import Execution, ExecutionQuerySet
+
+
+class RecurringExecutionQuerySet(ExecutionQuerySet):
+    def clearable(self):
+        return self.filter(job__isnull=True)
+
+    def create_or_insert(self, **kwargs):
+        # TODO: wtf
+        self.create(**kwargs)
+
+    @contextmanager
+    def record(self, task_result: TaskResult, task, run_at):
+        self.create_or_insert(job_id=task_result.id, task=task, run_at=run_at)
+
+    def clear_in_batches(self, batch_size=500):
+        while True:
+            deleted, _ = self.clearable()[:batch_size].delete()
+            if deleted == 0:
+                break
 
 
 class RecurringExecution(Execution):
@@ -8,9 +31,11 @@ class RecurringExecution(Execution):
         verbose_name_plural = "recurring executions"
         constraints = (
             models.UniqueConstraint(
-                fields=("task_key", "run_at"), name="uq_sq_recurring_task_run_at"
+                fields=("task", "run_at"), name="uq_sq_recurring_task_run_at"
             ),
         )
+
+    objects = RecurringExecutionQuerySet.as_manager()
 
     job = models.OneToOneField(
         "Job",
@@ -18,5 +43,11 @@ class RecurringExecution(Execution):
         on_delete=models.CASCADE,
         related_name="recurring_execution",
     )
-    task_key = models.CharField(max_length=255, verbose_name="task key")
+    task = models.ForeignKey(
+        "RecurringTask",
+        on_delete=models.CASCADE,
+        db_column="task_key",
+        to_field="key",
+        verbose_name="recurring task",
+    )
     run_at = models.DateTimeField(verbose_name="run at")

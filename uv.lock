@@ -38,6 +38,12 @@ wheels = [
 ]
 
 [[package]]
+name = "crontab"
+version = "1.0.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d6/36/a255b6f5a2e22df03fd2b2f3088974b44b8c9e9407e26b44742cb7cfbf5b/crontab-1.0.5.tar.gz", hash = "sha256:f80e01b4f07219763a9869f926dd17147278e7965a928089bca6d3dc80ae46d5", size = 21963 }
+
+[[package]]
 name = "decorator"
 version = "5.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -388,6 +394,7 @@ name = "robust-queue"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "crontab" },
     { name = "django" },
     { name = "django-tasks" },
 ]
@@ -402,6 +409,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "crontab", specifier = ">=1.0.5" },
     { name = "django", specifier = ">=5.2" },
     { name = "django-tasks", specifier = ">=0.8.1" },
 ]

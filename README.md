@@ -12,13 +12,17 @@
 - [x] Settings
 - [x] Maintenance: cleanup orphaned jobs
 - [x] Maintenance: prune dead processes
+- [x] Graceful worker termination
+- [x] Recurring tasks
 - [ ] Workers per queue
-- [ ] Graceful worker termination
 - [ ] Review logging noisiness
 - [ ] Use postgresql
 - [ ] Reorganize code
-- [ ] Recurring tasks
 - [ ] Concurrency controls
+- [ ] Tests
+- [ ] Documentation
+- [ ] CI
+- [ ] Retry on database is locked
 - [ ] Django admin for everything -> check out mission control jobs
 - [ ] Django admin permissions
 - [ ] Signals: pre/post enqueue, pre/post perform

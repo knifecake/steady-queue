@@ -3,15 +3,15 @@ import time
 from django.db import models
 from django.utils import timezone
 
+import robust_queue
+
 
 class ClearableQuerySet(models.QuerySet):
     def clearable(
         self, finished_before: timezone.datetime = None, class_name: str = None
     ):
         if finished_before is None:
-            finished_before = timezone.now() - timezone.timedelta(
-                days=30
-            )  # TODO: configurable
+            finished_before = timezone.now() - robust_queue.clear_finished_jobs_after
 
         queryset = self.exclude(finished_at__isnull=True).filter(
             finished_at__lt=finished_before

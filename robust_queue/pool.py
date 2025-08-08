@@ -3,30 +3,10 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from typing import Callable
 
+from robust_queue.concurrent import AtomicInteger
 from robust_queue.models.claimed_execution import ClaimedExecution
 
 logger = logging.getLogger("robust_queue")
-
-
-class AtomicInteger:
-    def __init__(self, value: int):
-        self._value = value
-        self._lock = Lock()
-
-    @property
-    def value(self):
-        with self._lock:
-            return self._value
-
-    def increment(self):
-        with self._lock:
-            self._value += 1
-            return self._value
-
-    def decrement(self):
-        with self._lock:
-            self._value -= 1
-            return self._value
 
 
 class Pool:
