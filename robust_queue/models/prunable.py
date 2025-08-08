@@ -1,24 +1,22 @@
 from django.utils import timezone
 
+import robust_queue
 from robust_queue.processes.errors import ProcessPrunedError
 
 
 class PrunableQuerySetMixin:
-    def prune(self, excluding=None):
+    def prunable(self):
+        return self.filter(
+            last_heartbeat_at__lt=timezone.now() - robust_queue.process_alive_threshold
+        )
+
+    def prune(self):
         prunable = self.prunable()
 
-        if excluding is not None:
-            prunable = prunable.exclude(id__in=map(excluding, lambda p: p.id))
-
-        prunable.select_for_update(skip_locked=True).iterator(batch_size=50)
+        prunable.select_for_update(skip_locked=True).iterator(chunk_size=50)
 
         for process in prunable:
             process.prune()
-
-    def prunable(self):
-        return self.filter(
-            last_heartbeat_at__lt=timezone.now() - timezone.timedelta(seconds=10)
-        )
 
 
 class PrunableMixin:

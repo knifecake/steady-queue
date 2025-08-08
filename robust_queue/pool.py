@@ -42,14 +42,17 @@ class Pool:
     def post(self, execution: ClaimedExecution):
         self.available_threads.decrement()
 
-        try:
-            logger.debug("posted execution %s", execution.pk)
-            self.executor.submit(execution.perform)
-        finally:
-            self.available_threads.increment()
-            with self.mutex:
-                if self.is_idle and self.on_idle:
-                    self.on_idle()
+        def wrapped_execution():
+            try:
+                execution.perform()
+            finally:
+                self.available_threads.increment()
+                with self.mutex:
+                    if self.is_idle and self.on_idle:
+                        self.on_idle()
+
+        self.executor.submit(wrapped_execution)
+        logger.debug("posted execution %s", execution.pk)
 
     @property
     def idle_threads(self):
@@ -60,4 +63,4 @@ class Pool:
         return self.available_threads.value > 0
 
     def shutdown(self):
-        self.executor.shutdown()
+        self.executor.shutdown(wait=False, cancel_futures=True)

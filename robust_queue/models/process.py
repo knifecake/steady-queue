@@ -1,15 +1,16 @@
 from django.db import models
 from django.utils import timezone
 
-from .base import BaseModel
-from .prunable import PrunableMixin, PrunableQuerySetMixin
+from robust_queue.models.base import BaseModel
+from robust_queue.models.executor import Executor
+from robust_queue.models.prunable import PrunableMixin, PrunableQuerySetMixin
 
 
 class ProcessQuerySet(PrunableQuerySetMixin, models.QuerySet):
     pass
 
 
-class Process(PrunableMixin, BaseModel):
+class Process(Executor, PrunableMixin, BaseModel):
     class Meta:
         verbose_name = "process"
         verbose_name_plural = "processes"

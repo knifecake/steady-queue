@@ -17,6 +17,7 @@ def wait_until(timeout: timedelta, condition: Callable):
             yield
     else:
         while not condition():
+            time.sleep(0.5)
             yield
 
 
@@ -24,34 +25,36 @@ class TimerTask:
     """
     A task that runs periodically in a separate thread to provide as much
     isolation as possible, inspired by Ruby's Concurrent::TimerTask.
-
-    It supports adding observers that are called when an error is found.
     """
 
     def __init__(self, interval: timedelta, callable: Callable):
         self.interval = interval
         self.callable = callable
-        self.is_stopped = False
-        self.observers = []
-
-    def add_observer(self, observer: Callable):
-        self.observers.append(observer)
-
-    def remove_observer(self, observer: Callable):
-        self.observers.remove(observer)
+        self._stop_event = threading.Event()
 
     def start(self):
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
 
     def stop(self):
-        self.is_stopped = True
+        self._stop_event.set()  # Signal the thread to wake up
 
-        self.thread.join()
+        time.sleep(0.1)
+        if self.thread.is_alive():
+            logger.warning(
+                "timer task did not stop within timeout, may still be running"
+            )
+
+        self.thread.join(timeout=0.1)
+        logger.debug("timer task stopped")
 
     def run(self):
-        while not self.is_stopped:
-            time.sleep(self.interval.total_seconds())
+        while not self._stop_event.is_set():
+            # Use Event.wait() for efficient interruptible sleep
+            logger.debug("timer task waiting for %s", self.interval)
+            if self._stop_event.wait(timeout=self.interval.total_seconds()):
+                # Event was set (stop was called), break out of loop
+                break
 
             # Run the callable in a separate thread to isolate crashes
             work_thread = threading.Thread(target=self.wrapped_callable)
@@ -60,6 +63,7 @@ class TimerTask:
 
     def wrapped_callable(self):
         try:
+            time.sleep(10)
             self.callable()
         except Exception as e:
             logger.exception(

@@ -39,12 +39,19 @@ class ReadyExecutionAdmin(ReadOnlyAdminMixin, BaseAdmin):
 
 @admin.register(FailedExecution)
 class FailedExecutionAdmin(ReadOnlyAdminMixin, BaseAdmin):
-    pass
+    list_display = ("job", "error", "created_at")
+    actions = ("retry",)
+
+    @admin.action(description="Retry")
+    def retry(self, request, queryset):
+        count = queryset.retry()
+        self.message_user(request, f"Retried {count} failed executions")
 
 
 @admin.register(Job)
 class JobAdmin(ReadOnlyAdminMixin, BaseAdmin):
-    pass
+    list_display = ("class_name", "status", "queue_name", "priority", "scheduled_at")
+    readonly_fields = ("status",)
 
 
 @admin.register(ScheduledExecution)
@@ -69,7 +76,7 @@ class PauseAdmin(ReadOnlyAdminMixin, BaseAdmin):
 
 @admin.register(ClaimedExecution)
 class ClaimedExecutionAdmin(ReadOnlyAdminMixin, BaseAdmin):
-    pass
+    list_display = ("job_id", "process__name", "created_at")
 
 
 @admin.register(BlockedExecution)

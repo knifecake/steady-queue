@@ -15,7 +15,10 @@ class Retryable:
 
         self.failed_execution.retry()
 
-    def failed_with(self, error: Exception) -> None:
+    def failed_with(self, error: Exception | str) -> None:
+        if isinstance(error, Exception):
+            error = f"{error.__class__.__name__}: {error}"
+
         FailedExecution.objects.get_or_create(
             job=self,
             error=str(error),

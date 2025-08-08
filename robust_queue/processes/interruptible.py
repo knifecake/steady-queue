@@ -9,6 +9,7 @@ logger = logging.getLogger("robust_queue")
 
 class Interruptible:
     def wake_up(self):
+        logger.debug("%s: wake_up", self.name)
         self.interrupt()
 
     def interruptible_sleep(self, duration: timedelta):
@@ -19,7 +20,7 @@ class Interruptible:
                 [self.self_pipe[0]], [], [], duration.total_seconds()
             )
             if ready:
-                logger.debug("interruptible_sleep: signal received")
+                logger.debug("%s: interruptible_sleep: interrupt received", self.name)
                 # Signal received, drain the pipe to avoid accumulating data
                 try:
                     os.read(self.self_pipe[0], 1024)
@@ -50,5 +51,5 @@ class Interruptible:
                 os.close(self.self_pipe[1])
             except OSError:
                 pass
-
+        logger.debug("%s: interruptible shutdown done", self.name)
         super().shutdown()

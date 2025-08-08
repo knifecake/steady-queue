@@ -3,7 +3,6 @@ from django.utils import timezone
 
 from robust_queue.django.task import RobustQueueTask
 from robust_queue.models.executable import Executable, ExecutableQuerySet
-from robust_queue.task import BaseTask
 
 from .base import BaseModel
 from .mixins import UpdatedAtMixin

@@ -10,6 +10,9 @@ logger = logging.getLogger("robust_queue")
 
 
 class ClaimedExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
+    def orphaned(self):
+        return self.filter(process_id=None)
+
     def claiming(self, job_ids, process_id):
         claimed_executions = [
             self.model(job_id=job_id, process_id=process_id) for job_id in job_ids
@@ -22,7 +25,7 @@ class ClaimedExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
         for execution in self.all():
             execution.release()
 
-    def fail_all_with(self, error: str):
+    def fail_all_with(self, error: Exception | str):
         executions = self.select_related("job").all()
         for execution in executions:
             execution.failed_with(error)
@@ -61,7 +64,7 @@ class ClaimedExecution(Execution):
         return "claimed"
 
     def unblock_next_job(self):
-        self.job.unblock_next_job()
+        self.job.unblock_next_blocked_job()
 
     def perform(self):
         logger.debug("performing claimed execution for job %s", self.job_id)
@@ -78,7 +81,7 @@ class ClaimedExecution(Execution):
             self.job.finished()
             self.delete()
 
-    def failed_with(self, error: str):
+    def failed_with(self, error: Exception | str):
         logger.debug("claimed execution for job %s failed with %s", self.job_id, error)
         with transaction.atomic():
             self.job.failed_with(error)

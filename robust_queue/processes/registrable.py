@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 from typing import Optional
 
+import robust_queue
 from robust_queue.models import Process
 from robust_queue.processes.base import Base
 from robust_queue.timer import TimerTask
@@ -44,22 +45,26 @@ class Registrable(Base):
         )
 
         self.process.deregister()
+        logger.debug(
+            "de-registered PID %s (%s) as %s", self.pid, self.kind, self.process.id
+        )
 
     @property
     def is_registered(self):
         return self.process is not None
 
     def launch_heartbeat(self):
-        self.maintenance_task = TimerTask(
-            interval=timedelta(seconds=1),
+        self.heartbeat_task = TimerTask(
+            interval=robust_queue.process_heartbeat_interval,
             callable=lambda: self.heartbeat(),
         )
 
-        self.maintenance_task.start()
+        self.heartbeat_task.start()
 
     def stop_heartbeat(self):
         logger.debug("stopping heartbeat for %s", self.name)
-        self.maintenance_task.stop()
+        self.heartbeat_task.stop()
+        logger.debug("stopped heartbeat for %s", self.name)
 
     def heartbeat(self):
         try:

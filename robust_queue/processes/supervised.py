@@ -24,8 +24,10 @@ class Supervised:
         pass
 
     def register_signal_handlers(self):
-        def h(*args):
-            logger.info("supervised received signal %s", args)
+        def h(signum, frame):
+            logger.info(
+                "%s supervised received signal %s", self.name, signal.strsignal(signum)
+            )
             self.stop()
 
         for sig in (signal.SIGINT, signal.SIGTERM):

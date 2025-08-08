@@ -40,6 +40,10 @@ class ScheduledExecution(Dispatching, Execution):
     priority = models.IntegerField(default=0, verbose_name="priority")
     scheduled_at = models.DateTimeField(verbose_name="scheduled at")
 
+    @property
+    def type(self):
+        return "scheduled"
+
     @classmethod
     def dispatch_next_batch(cls, batch_size: int) -> list["ScheduledExecution"]:
         with transaction.atomic():

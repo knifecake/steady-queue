@@ -4,6 +4,7 @@ import signal
 import sys
 from datetime import timedelta
 
+import robust_queue
 from robust_queue import timer
 from robust_queue.configuration import Configuration
 from robust_queue.maintenance import Maintenance
@@ -19,8 +20,8 @@ logger = logging.getLogger("robust_queue")
 
 class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Base):
     @classmethod
-    def launch(cls, **kwargs):
-        configuration = Configuration(**kwargs)
+    def launch(cls, options: Configuration.ConfigurationOptions = None):
+        configuration = Configuration(options)
         if not configuration.is_valid:
             raise ValueError("Invalid configuration")
 
@@ -42,6 +43,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
 
     def boot(self):
         super().boot()
+        self.fail_orphaned_executions()
         # TODO: sync std streams
 
     def start_processes(self):
@@ -52,6 +54,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
         try:
             while True:
                 if self.is_stopped:
+                    logger.debug("%s breaking because is_stopped", self.name)
                     break
 
                 self.set_procline()
@@ -61,6 +64,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
                     self.reap_and_replace_terminated_forks()
                     self.interruptible_sleep(timedelta(seconds=1))
         finally:
+            logger.debug("supervisor finally block")
             self.shutdown()
 
     def start_process(self, process: Configuration.Process):
@@ -94,7 +98,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
         self.term_forks()
 
         for _ in timer.wait_until(
-            timedelta(seconds=2), lambda: self.are_all_forks_terminated
+            robust_queue.shutdown_timeout, lambda: self.are_all_forks_terminated
         ):
             self.reap_terminated_forks()
 
@@ -109,6 +113,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
     def shutdown(self):
         self.stop_maintenance_task()
         super().shutdown()
+        logger.debug("supervisor shutdown done")
 
     def term_forks(self):
         self.signal_processes(self.forks.keys(), signal.SIGTERM)

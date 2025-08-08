@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 
+import robust_queue
+from robust_queue.models.concurrency_controls import ConcurrencyControls
 from robust_queue.models.ready_execution import ReadyExecution
 from robust_queue.models.retryable import Retryable, RetryableQuerySet
 from robust_queue.models.schedulable import Schedulable, SchedulableQuerySet
@@ -20,7 +22,7 @@ class ExecutableQuerySet(RetryableQuerySet, SchedulableQuerySet, models.QuerySet
         return self.filter(scheduled_execution__job__in=jobs)
 
 
-class Executable(Schedulable, Retryable):
+class Executable(ConcurrencyControls, Schedulable, Retryable):
     @classmethod
     def prepare_all_for_execution(cls, jobs):
         due = [j for j in jobs if j.is_due]
@@ -74,9 +76,11 @@ class Executable(Schedulable, Retryable):
         return self.ready
 
     def finished(self):
-        # TODO: preserve_finished_jobs?
-        self.finished_at = timezone.now()
-        self.save(update_fields=("finished_at",))
+        if robust_queue.preserve_finished_jobs:
+            self.finished_at = timezone.now()
+            self.save(update_fields=("finished_at",))
+        else:
+            self.delete()
 
     @property
     def is_finished(self):
@@ -98,4 +102,9 @@ class Executable(Schedulable, Retryable):
 
     @property
     def execution(self):
-        return self.ready_execution or self.claimed_execution or self.failed_execution
+        return (
+            getattr(self, "ready_execution", None)
+            or getattr(self, "claimed_execution", None)
+            or getattr(self, "failed_execution", None)
+            or getattr(self, "scheduled_execution", None)
+        )

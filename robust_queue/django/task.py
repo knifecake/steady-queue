@@ -1,5 +1,6 @@
+import datetime
 import uuid
-from typing import Any
+from typing import Any, Optional
 
 from django.utils import timezone, translation
 from django.utils.module_loading import import_string
@@ -18,12 +19,30 @@ class RobustQueueTask(Task):
     def id(self) -> str:
         return str(uuid.uuid4())
 
+    def using(
+        self,
+        *,
+        priority: Optional[int] = None,
+        queue_name: Optional[str] = None,
+        run_after: Optional[datetime.datetime | datetime.timedelta] = None,
+        backend: Optional[str] = None,
+    ):
+        if isinstance(run_after, datetime.timedelta):
+            run_after = timezone.now() + run_after
+
+        return super().using(
+            priority=priority,
+            queue_name=queue_name,
+            run_after=run_after,
+            backend=backend,
+        )
+
     def set_arguments(self, arguments: dict[str, Any]):
         self.arguments = arguments
 
     def serialize(self):
         return {
-            "class_name": self.module_path,  # TODO: support classes
+            "class_name": self.module_path,
             "job_id": self.id,  # TODO: make it stable
             "backend": self.backend,
             "queue_name": self.queue_name,

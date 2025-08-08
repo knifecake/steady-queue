@@ -1,10 +1,16 @@
-from django.db import models
+from django.db import models, transaction
 
 from .execution import Execution, ExecutionQuerySet
 
 
 class FailedExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
-    pass
+    def retry(self):
+        # TODO: optimize
+        with transaction.atomic():
+            count = self.count()
+            for failed_execution in self.all():
+                failed_execution.retry()
+            return count
 
 
 class FailedExecution(Execution):
@@ -25,3 +31,9 @@ class FailedExecution(Execution):
     @property
     def type(self):
         return "failed"
+
+    def retry(self):
+        with self.lock():
+            self.job.reset_execution_counters()
+            self.job.prepare_for_execution()
+            self.delete()
