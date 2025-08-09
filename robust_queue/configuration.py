@@ -2,8 +2,6 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Optional
 
-from robust_queue.processes.runnable import Runnable
-
 
 class Configuration:
     @dataclass
@@ -74,7 +72,7 @@ class Configuration:
         kind: str
         attributes: dict
 
-        def instantiate(self) -> Runnable:
+        def instantiate(self):
             if self.kind == "worker":
                 from robust_queue.worker import Worker
 

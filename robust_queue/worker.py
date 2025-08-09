@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 
 from django.db import models
+from django.db.models.fields import return_None
 from django.utils import timezone
 
 from robust_queue.configuration import Configuration
@@ -20,6 +21,14 @@ class Worker(Poller):
         self.pool = Pool(options.threads, on_idle=lambda: self.wake_up())
 
         super().__init__(polling_interval=options.polling_interval)
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "queues": ",".join(self.queues),
+            "thread_pool_size": self.pool.size,
+        }
 
     def poll(self) -> timedelta:
         claimed_executions = self.claim_executions()

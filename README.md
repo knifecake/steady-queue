@@ -14,12 +14,16 @@
 - [x] Maintenance: prune dead processes
 - [x] Graceful worker termination
 - [x] Recurring tasks
-- [ ] Workers per queue
+- [x] Workers per queue
+- [x] Store process metadata
+- [ ] Class-based tasks
+- [ ] Argument serialization review
+- [ ] Task backend capabilities
 - [ ] Review logging noisiness
-- [ ] Use postgresql
 - [ ] Reorganize code
 - [ ] Concurrency controls
 - [ ] Tests
+- [ ] Use postgresql
 - [ ] Documentation
 - [ ] CI
 - [ ] Retry on database is locked

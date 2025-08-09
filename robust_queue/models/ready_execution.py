@@ -1,20 +1,35 @@
-from decimal import Clamped
+from typing import Iterator
 
 from django.db import models, transaction
+
+from robust_queue.models.claimed_execution import ClaimedExecution
+from robust_queue.queue_selector import QueueSelector
 
 from .execution import Execution, ExecutionQuerySet
 
 
 class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
+    def queued_as(self, queue_name: str) -> models.QuerySet:
+        return self.filter(queue_name=queue_name)
+
     def create_all_from_jobs(self, jobs):
         jobs = [
             self.model(job=job, **self.model.attributes_from_job(job)) for job in jobs
         ]
         return self.bulk_create(jobs)  # TODO: conflicts?
 
-    def claim(self, queue_list, limit, process_id):
-        # TODO: queue selection
-        return self.select_and_lock(process_id, limit)
+    def claim(self, queue_list, limit, process_id) -> Iterator[ClaimedExecution]:
+        scoped_relations = QueueSelector(
+            queue_list, self.model.objects
+        ).scoped_relations()
+
+        claimed = []
+        for relation in scoped_relations:
+            locked = relation.select_and_lock(process_id, limit)
+            limit -= len(locked)
+            claimed.extend(locked)
+
+        return claimed
 
     def select_and_lock(self, process_id, limit) -> models.QuerySet:
         if limit <= 0:

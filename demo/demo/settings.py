@@ -14,6 +14,8 @@ import os
 import sys
 from pathlib import Path
 
+from robust_queue.configuration import Configuration
+
 sys.path.insert(0, os.path.abspath(".."))
 
 
@@ -163,3 +165,11 @@ LOGGING = {
         },
     },
 }
+
+
+ROBUST_QUEUE = Configuration.ConfigurationOptions(
+    workers=[
+        Configuration.WorkerConfiguration(queues=["default"]),
+        Configuration.WorkerConfiguration(queues=["isolated"]),
+    ]
+)

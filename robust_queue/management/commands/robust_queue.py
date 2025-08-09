@@ -9,6 +9,8 @@ logger = logging.getLogger("robust_queue.supervisor")
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
+from django.conf import settings
+
 
 class Command(BaseCommand):
     help = "Run the robust queue supervisor"
@@ -24,4 +26,4 @@ class Command(BaseCommand):
         if not options.get("disable_autoload"):
             autodiscover_modules("tasks")
 
-        Supervisor.launch()
+        Supervisor.launch(getattr(settings, "ROBUST_QUEUE", None))

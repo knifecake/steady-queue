@@ -73,7 +73,7 @@ class ClaimedExecution(Execution):
             self.finished()
         except Exception as e:
             logger.exception("claimed execution failed", exc_info=e)
-            self.failed_with(str(e))
+            self.failed_with(e)
 
     def finished(self):
         logger.debug("claimed execution for job %s finished", self.job_id)

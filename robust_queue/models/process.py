@@ -1,3 +1,4 @@
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils import timezone
 
@@ -40,7 +41,9 @@ class Process(Executor, PrunableMixin, BaseModel):
     hostname = models.CharField(
         max_length=1024, null=True, blank=True, verbose_name="hostname"
     )
-    metadata = models.JSONField(null=True, blank=True, verbose_name="metadata")
+    metadata = models.JSONField(
+        null=True, blank=True, verbose_name="metadata", encoder=DjangoJSONEncoder
+    )
     name = models.CharField(max_length=255, verbose_name="name")
 
     @classmethod

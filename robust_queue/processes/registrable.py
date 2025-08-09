@@ -30,7 +30,7 @@ class Registrable(Base):
             pid=self.pid,
             hostname=self.hostname,
             supervisor=getattr(self, "supervisor", None),
-            # metadata=self.metadata, # TODO: custom serializer
+            metadata=self.metadata,
         )
         logger.debug(
             "Registered PID %s (%s) as %s", self.pid, self.kind, self.process.id
