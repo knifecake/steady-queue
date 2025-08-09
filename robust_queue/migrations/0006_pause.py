@@ -6,23 +6,42 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('robust_queue', '0005_failedexecution'),
+        ("robust_queue", "0005_failedexecution"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Pause',
+            name="Pause",
             fields=[
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now, verbose_name='created at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('queue_name', models.CharField(max_length=255, verbose_name='queue name')),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="created at"
+                    ),
+                ),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "queue_name",
+                    models.CharField(max_length=255, verbose_name="queue name"),
+                ),
             ],
             options={
-                'verbose_name': 'pause',
-                'verbose_name_plural': 'pauses',
-                'constraints': [models.UniqueConstraint(fields=('queue_name',), name='uq_rq_pause_queue_name')],
+                "verbose_name": "pause",
+                "verbose_name_plural": "pauses",
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("queue_name",), name="uq_rq_pause_queue_name"
+                    )
+                ],
             },
         ),
     ]

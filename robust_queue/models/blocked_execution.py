@@ -1,6 +1,6 @@
 from django.db import models
 
-from .execution import Execution, ExecutionQuerySet
+from robust_queue.models.execution import Execution, ExecutionQuerySet
 
 
 class BlockedExecutionQuerySet(ExecutionQuerySet):

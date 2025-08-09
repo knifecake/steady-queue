@@ -2,7 +2,7 @@ import time
 
 from django_tasks import task
 
-from robust_queue.django.recurring_task import recurring_task
+from robust_queue.recurring_task import recurring
 
 
 @task()
@@ -25,7 +25,7 @@ def exception_task():
     return 1 / 0
 
 
-@recurring_task(schedule="*/1 * * * *", key="rt1 once per minute")
+@recurring(schedule="*/1 * * * *", key="rt1 once per minute")
 @task()
 def recurring_task1():
     """

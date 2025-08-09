@@ -2,13 +2,11 @@ import logging
 from datetime import timedelta
 
 from django.db import models
-from django.db.models.fields import return_None
-from django.utils import timezone
 
 from robust_queue.configuration import Configuration
 from robust_queue.models.ready_execution import ReadyExecution
-from robust_queue.pool import Pool
 from robust_queue.processes.poller import Poller
+from robust_queue.processes.pool import Pool
 
 logger = logging.getLogger("robust_queue")
 
@@ -49,5 +47,6 @@ class Worker(Poller):
 
         super().shutdown()
 
+    @property
     def is_all_work_completed(self) -> bool:
         return ReadyExecution.objects.aggregated_count_across_queues(self.queues) == 0

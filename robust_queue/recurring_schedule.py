@@ -2,14 +2,17 @@ import logging
 from datetime import datetime
 from threading import Timer
 
-from robust_queue.concurrent import Dict
+from robust_queue.configuration import Configuration
 from robust_queue.models.recurring_task import RecurringTask
+from robust_queue.processes.concurrent import Dict
 
 logger = logging.getLogger("robust_queue")
 
 
 class RecurringSchedule:
-    def __init__(self, tasks):
+    def __init__(
+        self, tasks: list[RecurringTask | Configuration.RecurringTaskConfiguration]
+    ):
         self.configured_tasks: list[RecurringTask] = [
             RecurringTask.wrap(t) for t in tasks
         ]

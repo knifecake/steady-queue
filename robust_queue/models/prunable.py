@@ -4,7 +4,7 @@ import robust_queue
 from robust_queue.processes.errors import ProcessPrunedError
 
 
-class PrunableQuerySetMixin:
+class PrunableQuerySet:
     def prunable(self):
         return self.filter(
             last_heartbeat_at__lt=timezone.now() - robust_queue.process_alive_threshold
@@ -19,7 +19,7 @@ class PrunableQuerySetMixin:
             process.prune()
 
 
-class PrunableMixin:
+class Prunable:
     def prune(self):
         error = ProcessPrunedError(self.last_heartbeat_at)
         self.fail_all_claimed_executions_with(error)

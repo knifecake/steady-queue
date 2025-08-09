@@ -2,9 +2,8 @@ import logging
 
 from django.db import models, transaction
 
-from robust_queue.django.task import RobustQueueTask
-
-from .execution import Execution, ExecutionQuerySet
+from robust_queue.models.execution import Execution, ExecutionQuerySet
+from robust_queue.task import RobustQueueTask
 
 logger = logging.getLogger("robust_queue")
 

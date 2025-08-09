@@ -28,10 +28,34 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["robust_queue*"]
 
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+warn_unused_ignores = true
+warn_return_any = true
+show_error_codes = true
+# strict_optional = true
+# implicit_optional = true
+# disallow_subclassing_any = true
+# disallow_untyped_calls = true
+# disallow_untyped_defs = true
+# disallow_incomplete_defs = true
+# disallow_untyped_decorators = true
+# check_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "tests.settings"
+
 [dependency-groups]
 dev = [
+    "coverage>=7.10.2",
+    "django-stubs-ext>=5.2.2",
+    "django-stubs[compatible-mypy]>=5.2.2",
     "ipython>=9.4.0",
+    "mypy>=1.17.1",
     "pre-commit>=4.0.1",
     "psycopg[binary,pool]>=3.2.6",
     "ruff>=0.11.6",
+    "ty>=0.0.1a17",
+    "types-python-crontab>=3.3.0.20250715",
 ]

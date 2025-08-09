@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.contrib import admin
 
 from .models import (
@@ -26,10 +28,10 @@ class ReadOnlyAdminMixin:
 
 
 class BaseAdmin(admin.ModelAdmin):
-    list_display = ("id", "__str__", "created_at")
-    date_hierarchy = "created_at"
-    search_fields = ("id",)
-    ordering = ("-created_at",)
+    list_display: tuple[str, ...] = ("id", "__str__", "created_at")
+    date_hierarchy: Optional[str] = "created_at"
+    search_fields: tuple[str, ...] = ("id",)
+    ordering: tuple[str, ...] = ("-created_at",)
 
 
 @admin.register(ReadyExecution)

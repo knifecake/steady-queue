@@ -7,30 +7,71 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('robust_queue', '0002_alter_job_class_name_alter_job_queue_name_and_more'),
+        ("robust_queue", "0002_alter_job_class_name_alter_job_queue_name_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Process',
+            name="Process",
             fields=[
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now, verbose_name='created at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('kind', models.CharField(max_length=255, verbose_name='kind')),
-                ('last_heartbeat_at', models.DateTimeField(verbose_name='last heartbeat at')),
-                ('pid', models.PositiveSmallIntegerField(verbose_name='pid')),
-                ('hostname', models.CharField(blank=True, max_length=1024, null=True, verbose_name='hostname')),
-                ('metadata', models.JSONField(blank=True, null=True, verbose_name='metadata')),
-                ('name', models.CharField(max_length=255, verbose_name='name')),
-                ('supervisor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='supervisees', to='robust_queue.process')),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="created at"
+                    ),
+                ),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("kind", models.CharField(max_length=255, verbose_name="kind")),
+                (
+                    "last_heartbeat_at",
+                    models.DateTimeField(verbose_name="last heartbeat at"),
+                ),
+                ("pid", models.PositiveSmallIntegerField(verbose_name="pid")),
+                (
+                    "hostname",
+                    models.CharField(
+                        blank=True, max_length=1024, null=True, verbose_name="hostname"
+                    ),
+                ),
+                (
+                    "metadata",
+                    models.JSONField(blank=True, null=True, verbose_name="metadata"),
+                ),
+                ("name", models.CharField(max_length=255, verbose_name="name")),
+                (
+                    "supervisor",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="supervisees",
+                        to="robust_queue.process",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'process',
-                'verbose_name_plural': 'processes',
-                'indexes': [models.Index(fields=['last_heartbeat_at'], name='ix_rq_process_heartbeat')],
-                'constraints': [models.UniqueConstraint(fields=('name', 'supervisor'), name='uq_rq_process_name_supervisor')],
+                "verbose_name": "process",
+                "verbose_name_plural": "processes",
+                "indexes": [
+                    models.Index(
+                        fields=["last_heartbeat_at"], name="ix_rq_process_heartbeat"
+                    )
+                ],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("name", "supervisor"),
+                        name="uq_rq_process_name_supervisor",
+                    )
+                ],
             },
         ),
     ]

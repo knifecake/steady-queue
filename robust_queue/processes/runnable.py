@@ -49,7 +49,7 @@ class Runnable(Supervised):
 
     @property
     def is_finished(self) -> bool:
-        self.is_running_inline and self.is_all_work_completed
+        return self.is_running_inline and self.is_all_work_completed
 
     @property
     def is_all_work_completed(self) -> bool:

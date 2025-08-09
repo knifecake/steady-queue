@@ -1,4 +1,5 @@
 from django.test import SimpleTestCase, TestCase
+
 from robust_queue.arguments import Arguments
 from tests.dummy.models import Dummy
 

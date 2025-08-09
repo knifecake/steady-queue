@@ -7,25 +7,50 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('robust_queue', '0007_readyexecution'),
+        ("robust_queue", "0007_readyexecution"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RecurringExecution',
+            name="RecurringExecution",
             fields=[
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now, verbose_name='created at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('task_key', models.CharField(max_length=255, verbose_name='task key')),
-                ('run_at', models.DateTimeField(verbose_name='run at')),
-                ('job', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='recurring_execution', to='robust_queue.job', verbose_name='job')),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="created at"
+                    ),
+                ),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("task_key", models.CharField(max_length=255, verbose_name="task key")),
+                ("run_at", models.DateTimeField(verbose_name="run at")),
+                (
+                    "job",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="recurring_execution",
+                        to="robust_queue.job",
+                        verbose_name="job",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'recurring execution',
-                'verbose_name_plural': 'recurring executions',
-                'constraints': [models.UniqueConstraint(fields=('task_key', 'run_at'), name='uq_sq_recurring_task_run_at')],
+                "verbose_name": "recurring execution",
+                "verbose_name_plural": "recurring executions",
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("task_key", "run_at"),
+                        name="uq_sq_recurring_task_run_at",
+                    )
+                ],
             },
         ),
     ]

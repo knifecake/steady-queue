@@ -8,10 +8,8 @@ from django.utils import timezone
 from django.utils.module_loading import import_string
 
 from robust_queue.configuration import Configuration
+from robust_queue.models.base import BaseModel, UpdatedAtMixin
 from robust_queue.models.recurring_execution import RecurringExecution
-
-from .base import BaseModel
-from .mixins import UpdatedAtMixin
 
 
 class RecurringTaskQuerySet(models.QuerySet):

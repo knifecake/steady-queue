@@ -16,16 +16,21 @@
 - [x] Recurring tasks
 - [x] Workers per queue
 - [x] Store process metadata
+- [ ] Primary keys
 - [ ] Class-based tasks
 - [ ] Argument serialization review
-- [ ] Task backend capabilities
+- [x] Task backend capabilities
 - [ ] Review logging noisiness
-- [ ] Reorganize code
+- [ ] Pidfiles
+- [x] Reorganize code
 - [ ] Concurrency controls
 - [ ] Tests
 - [ ] Use postgresql
 - [ ] Documentation
 - [ ] CI
+- [x] Pre-commit
+- [ ] Queue pausing from admin
+- [ ] Django checks
 - [ ] Retry on database is locked
 - [ ] Django admin for everything -> check out mission control jobs
 - [ ] Django admin permissions

@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Optional
 
+from robust_queue.processes.base import Base
+
 
 class Configuration:
     @dataclass
@@ -31,7 +33,7 @@ class Configuration:
 
         @classmethod
         def discover(cls) -> list["Configuration.RecurringTaskConfiguration"]:
-            from robust_queue.django.recurring_task import configurations
+            from robust_queue.recurring_task import configurations
 
             return configurations
 
@@ -72,23 +74,23 @@ class Configuration:
         kind: str
         attributes: dict
 
-        def instantiate(self):
+        def instantiate(self) -> Base:
             if self.kind == "worker":
-                from robust_queue.worker import Worker
+                from robust_queue.processes.worker import Worker
 
                 return Worker(options=self.attributes)
             elif self.kind == "dispatcher":
-                from robust_queue.dispatcher import Dispatcher
+                from robust_queue.processes.dispatcher import Dispatcher
 
                 return Dispatcher(options=self.attributes)
             elif self.kind == "scheduler":
-                from robust_queue.scheduler import Scheduler
+                from robust_queue.processes.scheduler import Scheduler
 
                 return Scheduler(**self.attributes)
 
             raise ValueError(f"Invalid process kind: {self.kind}")
 
-    def __init__(self, options: ConfigurationOptions = None):
+    def __init__(self, options: Optional[ConfigurationOptions] = None):
         if options is None:
             options = self.ConfigurationOptions()
         self.options = options

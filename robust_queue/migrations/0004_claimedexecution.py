@@ -7,24 +7,57 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('robust_queue', '0003_process'),
+        ("robust_queue", "0003_process"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ClaimedExecution',
+            name="ClaimedExecution",
             fields=[
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now, verbose_name='created at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('job', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='claimed_execution', to='robust_queue.job', verbose_name='job')),
-                ('process', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='claimed_executions', to='robust_queue.process', verbose_name='process')),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="created at"
+                    ),
+                ),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "job",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="claimed_execution",
+                        to="robust_queue.job",
+                        verbose_name="job",
+                    ),
+                ),
+                (
+                    "process",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="claimed_executions",
+                        to="robust_queue.process",
+                        verbose_name="process",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'claimed execution',
-                'verbose_name_plural': 'claimed executions',
-                'indexes': [models.Index(fields=['process_id', 'job_id'], name='ix_rq_claimed_process_job')],
+                "verbose_name": "claimed execution",
+                "verbose_name_plural": "claimed executions",
+                "indexes": [
+                    models.Index(
+                        fields=["process_id", "job_id"],
+                        name="ix_rq_claimed_process_job",
+                    )
+                ],
             },
         ),
     ]

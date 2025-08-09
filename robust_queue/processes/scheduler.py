@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+from typing import Optional
 
 from robust_queue.configuration import Configuration
 from robust_queue.models.recurring_task import RecurringTask
@@ -17,8 +18,8 @@ class Scheduler(Runnable, Interruptible, Registrable, Base):
 
     def __init__(
         self,
-        recurring_tasks: list[
-            RecurringTask | Configuration.RecurringTaskConfiguration
+        recurring_tasks: Optional[
+            list[RecurringTask | Configuration.RecurringTaskConfiguration]
         ] = None,
         **kwargs,
     ):
@@ -62,5 +63,6 @@ class Scheduler(Runnable, Interruptible, Registrable, Base):
     def unschedule_recurring_tasks(self):
         self.recurring_schedule.unschedule_tasks()
 
+    @property
     def is_all_work_completed(self):
         return self.recurring_schedule is None  # TODO

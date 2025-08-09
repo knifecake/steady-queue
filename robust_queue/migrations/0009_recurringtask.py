@@ -6,33 +6,73 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('robust_queue', '0008_recurringexecution'),
+        ("robust_queue", "0008_recurringexecution"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RecurringTask',
+            name="RecurringTask",
             fields=[
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now, verbose_name='created at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='updated at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('key', models.CharField(max_length=255, verbose_name='key')),
-                ('schedule', models.CharField(max_length=255, verbose_name='schedule')),
-                ('command', models.CharField(blank=True, max_length=2048, null=True, verbose_name='command')),
-                ('class_name', models.CharField(max_length=255, verbose_name='class name')),
-                ('arguments', models.JSONField(verbose_name='arguments')),
-                ('queue_name', models.CharField(max_length=255, verbose_name='queue name')),
-                ('priority', models.PositiveSmallIntegerField(default=0, verbose_name='priority')),
-                ('static', models.BooleanField(default=False, verbose_name='static')),
-                ('description', models.TextField(blank=True, null=True, verbose_name='description')),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="created at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="updated at"),
+                ),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("key", models.CharField(max_length=255, verbose_name="key")),
+                ("schedule", models.CharField(max_length=255, verbose_name="schedule")),
+                (
+                    "command",
+                    models.CharField(
+                        blank=True, max_length=2048, null=True, verbose_name="command"
+                    ),
+                ),
+                (
+                    "class_name",
+                    models.CharField(max_length=255, verbose_name="class name"),
+                ),
+                ("arguments", models.JSONField(verbose_name="arguments")),
+                (
+                    "queue_name",
+                    models.CharField(max_length=255, verbose_name="queue name"),
+                ),
+                (
+                    "priority",
+                    models.PositiveSmallIntegerField(
+                        default=0, verbose_name="priority"
+                    ),
+                ),
+                ("static", models.BooleanField(default=False, verbose_name="static")),
+                (
+                    "description",
+                    models.TextField(blank=True, null=True, verbose_name="description"),
+                ),
             ],
             options={
-                'verbose_name': 'recurring task',
-                'verbose_name_plural': 'recurring tasks',
-                'indexes': [models.Index(fields=['static'], name='ix_rq_recurring_tasks_static')],
-                'constraints': [models.UniqueConstraint(fields=('key',), name='uq_rq_recurring_tasks_key')],
+                "verbose_name": "recurring task",
+                "verbose_name_plural": "recurring tasks",
+                "indexes": [
+                    models.Index(fields=["static"], name="ix_rq_recurring_tasks_static")
+                ],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("key",), name="uq_rq_recurring_tasks_key"
+                    )
+                ],
             },
         ),
     ]

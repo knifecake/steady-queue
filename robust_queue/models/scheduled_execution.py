@@ -45,7 +45,7 @@ class ScheduledExecution(Dispatching, Execution):
         return "scheduled"
 
     @classmethod
-    def dispatch_next_batch(cls, batch_size: int) -> list["ScheduledExecution"]:
+    def dispatch_next_batch(cls, batch_size: int) -> int:
         with transaction.atomic():
             job_ids = (
                 cls.objects.next_batch(batch_size)

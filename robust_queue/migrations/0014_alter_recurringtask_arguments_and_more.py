@@ -4,20 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('robust_queue', '0013_remove_recurringexecution_uq_sq_recurring_task_run_at_and_more'),
+        (
+            "robust_queue",
+            "0013_remove_recurringexecution_uq_sq_recurring_task_run_at_and_more",
+        ),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='recurringtask',
-            name='arguments',
-            field=models.JSONField(blank=True, null=True, verbose_name='arguments'),
+            model_name="recurringtask",
+            name="arguments",
+            field=models.JSONField(blank=True, null=True, verbose_name="arguments"),
         ),
         migrations.AlterField(
-            model_name='recurringtask',
-            name='queue_name',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='queue name'),
+            model_name="recurringtask",
+            name="queue_name",
+            field=models.CharField(
+                blank=True, max_length=255, null=True, verbose_name="queue name"
+            ),
         ),
     ]

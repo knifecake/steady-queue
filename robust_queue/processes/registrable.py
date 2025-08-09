@@ -1,11 +1,10 @@
 import logging
-from datetime import timedelta
 from typing import Optional
 
 import robust_queue
 from robust_queue.models import Process
 from robust_queue.processes.base import Base
-from robust_queue.timer import TimerTask
+from robust_queue.processes.timer import TimerTask
 
 logger = logging.getLogger("robust_queue")
 

@@ -4,7 +4,7 @@ import robust_queue
 from robust_queue.models.claimed_execution import ClaimedExecution
 from robust_queue.models.process import Process
 from robust_queue.processes.errors import ProcessMissingError
-from robust_queue.timer import TimerTask
+from robust_queue.processes.timer import TimerTask
 
 logger = logging.getLogger("robust_queue")
 

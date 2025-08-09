@@ -6,32 +6,96 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Job',
+            name="Job",
             fields=[
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now, verbose_name='created at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='updated at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('queue_name', models.CharField(max_length=255, verbose_name='queue_name')),
-                ('class_name', models.CharField(max_length=255, verbose_name='class_name')),
-                ('arguments', models.JSONField(verbose_name='arguments')),
-                ('priority', models.IntegerField(default=0, verbose_name='priority')),
-                ('django_task_id', models.CharField(blank=True, max_length=255, null=True, verbose_name='Django task ID')),
-                ('scheduled_at', models.DateTimeField(blank=True, null=True, verbose_name='scheduled at')),
-                ('finished_at', models.DateTimeField(blank=True, null=True, verbose_name='finished at')),
-                ('concurrency_key', models.CharField(blank=True, max_length=255, null=True, verbose_name='concurrency key')),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="created at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="updated at"),
+                ),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "queue_name",
+                    models.CharField(max_length=255, verbose_name="queue_name"),
+                ),
+                (
+                    "class_name",
+                    models.CharField(max_length=255, verbose_name="class_name"),
+                ),
+                ("arguments", models.JSONField(verbose_name="arguments")),
+                ("priority", models.IntegerField(default=0, verbose_name="priority")),
+                (
+                    "django_task_id",
+                    models.CharField(
+                        blank=True,
+                        max_length=255,
+                        null=True,
+                        verbose_name="Django task ID",
+                    ),
+                ),
+                (
+                    "scheduled_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="scheduled at"
+                    ),
+                ),
+                (
+                    "finished_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="finished at"
+                    ),
+                ),
+                (
+                    "concurrency_key",
+                    models.CharField(
+                        blank=True,
+                        max_length=255,
+                        null=True,
+                        verbose_name="concurrency key",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'job',
-                'verbose_name_plural': 'jobs',
-                'indexes': [models.Index(fields=['django_task_id'], name='ix_rq_jobs_on_django_task_id'), models.Index(fields=['class_name'], name='ix_rq_jobs_on_class_name'), models.Index(fields=['finished_at'], name='ix_rq_jobs_on_finished_at'), models.Index(fields=['queue_name', 'finished_at'], name='ix_rq_jobs_for_filtering'), models.Index(fields=['scheduled_at', 'finished_at'], name='ix_rq_jobs_for_alerting')],
+                "verbose_name": "job",
+                "verbose_name_plural": "jobs",
+                "indexes": [
+                    models.Index(
+                        fields=["django_task_id"], name="ix_rq_jobs_on_django_task_id"
+                    ),
+                    models.Index(
+                        fields=["class_name"], name="ix_rq_jobs_on_class_name"
+                    ),
+                    models.Index(
+                        fields=["finished_at"], name="ix_rq_jobs_on_finished_at"
+                    ),
+                    models.Index(
+                        fields=["queue_name", "finished_at"],
+                        name="ix_rq_jobs_for_filtering",
+                    ),
+                    models.Index(
+                        fields=["scheduled_at", "finished_at"],
+                        name="ix_rq_jobs_for_alerting",
+                    ),
+                ],
             },
         ),
     ]

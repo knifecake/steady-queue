@@ -1,11 +1,11 @@
+from typing import Optional, Self
+
 from django.db import models
 from django.utils import timezone
 
-from robust_queue.django.task import RobustQueueTask
+from robust_queue.models.base import BaseModel, UpdatedAtMixin
 from robust_queue.models.executable import Executable, ExecutableQuerySet
-
-from .base import BaseModel
-from .mixins import UpdatedAtMixin
+from robust_queue.task import RobustQueueTask
 
 
 class JobQuerySet(ExecutableQuerySet, models.QuerySet):
@@ -39,7 +39,7 @@ class Job(Executable, UpdatedAtMixin, BaseModel):
     class_name = models.CharField(max_length=255, verbose_name="class name")
     arguments = models.JSONField(verbose_name="arguments")
     priority = models.IntegerField(default=0, verbose_name="priority")
-    django_task_id = models.CharField(
+    django_task_id: Optional[str] = models.CharField(
         max_length=255, blank=True, null=True, verbose_name="Django task ID"
     )
     scheduled_at = models.DateTimeField(
@@ -54,8 +54,8 @@ class Job(Executable, UpdatedAtMixin, BaseModel):
 
     @classmethod
     def enqueue(
-        cls, task: RobustQueueTask, scheduled_at: timezone.datetime = None
-    ) -> "Job":
+        cls, task: RobustQueueTask, scheduled_at: Optional[timezone.datetime] = None
+    ) -> Self:
         if scheduled_at is None:
             scheduled_at = timezone.now()
 

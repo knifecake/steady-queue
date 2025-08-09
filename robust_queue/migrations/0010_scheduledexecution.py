@@ -7,26 +7,54 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('robust_queue', '0009_recurringtask'),
+        ("robust_queue", "0009_recurringtask"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ScheduledExecution',
+            name="ScheduledExecution",
             fields=[
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now, verbose_name='created at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('queue_name', models.CharField(max_length=255, verbose_name='queue name')),
-                ('priority', models.IntegerField(default=0, verbose_name='priority')),
-                ('scheduled_at', models.DateTimeField(verbose_name='scheduled at')),
-                ('job', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='scheduled_execution', to='robust_queue.job', verbose_name='job')),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="created at"
+                    ),
+                ),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "queue_name",
+                    models.CharField(max_length=255, verbose_name="queue name"),
+                ),
+                ("priority", models.IntegerField(default=0, verbose_name="priority")),
+                ("scheduled_at", models.DateTimeField(verbose_name="scheduled at")),
+                (
+                    "job",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="scheduled_execution",
+                        to="robust_queue.job",
+                        verbose_name="job",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'scheduled execution',
-                'verbose_name_plural': 'scheduled executions',
-                'indexes': [models.Index(fields=['scheduled_at', 'priority', 'job'], name='ix_rq_dispatch_all')],
+                "verbose_name": "scheduled execution",
+                "verbose_name_plural": "scheduled executions",
+                "indexes": [
+                    models.Index(
+                        fields=["scheduled_at", "priority", "job"],
+                        name="ix_rq_dispatch_all",
+                    )
+                ],
             },
         ),
     ]

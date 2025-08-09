@@ -1,7 +1,7 @@
 import logging
 import os
 import signal
-from typing import Optional
+from typing import Iterable, Optional
 
 logger = logging.getLogger("robust_queue.supervisor")
 
@@ -47,11 +47,11 @@ class Signals:
         else:
             logger.warning("Received unexpected signal %s", sig)
 
-    def signal_processes(self, pids, signal):
+    def signal_processes(self, pids: Iterable[int], signal: int) -> None:
         for pid in pids:
             self.signal_process(pid, signal)
 
-    def signal_process(self, pid, signal):
+    def signal_process(self, pid: int, signal: int) -> None:
         try:
             os.kill(pid, signal)
         except OSError:

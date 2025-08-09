@@ -1,5 +1,3 @@
-from signal import default_int_handler
-
 from django.db import models
 from django.utils import timezone
 

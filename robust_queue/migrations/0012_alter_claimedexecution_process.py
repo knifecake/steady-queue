@@ -5,15 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('robust_queue', '0011_semaphore'),
+        ("robust_queue", "0011_semaphore"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='claimedexecution',
-            name='process',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='claimed_executions', to='robust_queue.process', verbose_name='process'),
+            model_name="claimedexecution",
+            name="process",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="claimed_executions",
+                to="robust_queue.process",
+                verbose_name="process",
+            ),
         ),
     ]

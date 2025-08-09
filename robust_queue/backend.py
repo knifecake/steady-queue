@@ -1,15 +1,24 @@
-from django_tasks import ResultStatus, TaskResult
+from django_tasks import ResultStatus, Task, TaskResult
 from django_tasks.backends.base import BaseTaskBackend
 from django_tasks.exceptions import ResultDoesNotExist
 
-from robust_queue.django.task import RobustQueueTask
 from robust_queue.models import Job
+from robust_queue.task import RobustQueueTask
 
 
 class RobustQueueBackend(BaseTaskBackend):
     task_class = RobustQueueTask
 
-    def enqueue(self, task: RobustQueueTask, args, kwargs) -> TaskResult:
+    supports_defer = True
+
+    supports_async_task = False
+
+    supports_get_result = False
+
+    def enqueue(self, task: Task, args, kwargs) -> TaskResult:
+        if not isinstance(task, RobustQueueTask):
+            raise ValueError("robust queue only supports RobustQueueTasks")
+
         if args:
             raise ValueError("robust queue does not support positional arguments yet")
 
@@ -24,12 +33,12 @@ class RobustQueueBackend(BaseTaskBackend):
         return TaskResult(
             task=task,
             id=job.id,
-            status=ResultStatus.READY,
+            status=ResultStatus("READY"),
             enqueued_at=job.created_at,
             started_at=None,
             finished_at=job.finished_at,
             last_attempted_at=None,
-            args=None,
+            args=[],
             kwargs=task.arguments,
             backend=task.backend,
             errors=[],

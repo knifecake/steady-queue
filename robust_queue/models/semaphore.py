@@ -1,7 +1,6 @@
-from .base import BaseModel
 from django.db import models
 
-from .mixins import UpdatedAtMixin
+from robust_queue.models.base import BaseModel, UpdatedAtMixin
 
 
 class Semaphore(UpdatedAtMixin, BaseModel):

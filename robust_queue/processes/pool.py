@@ -3,8 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from typing import Callable
 
-from robust_queue.concurrent import AtomicInteger
 from robust_queue.models.claimed_execution import ClaimedExecution
+from robust_queue.processes.concurrent import AtomicInteger
 
 logger = logging.getLogger("robust_queue")
 

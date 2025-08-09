@@ -96,7 +96,7 @@ DATABASES = {
 # Tasks
 TASKS = {
     "default": {
-        "BACKEND": "robust_queue.django.backend.RobustQueueBackend",
+        "BACKEND": "robust_queue.backend.RobustQueueBackend",
         "QUEUES": ["default"],
         "OPTIONS": {},
     }
