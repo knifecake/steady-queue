@@ -5,16 +5,21 @@ from typing import Any, Optional
 from django.utils import timezone, translation
 from django.utils.module_loading import import_string
 from django_tasks import Task
+from django_tasks.task import P, T, TaskResult
+
+from robust_queue.arguments import Arguments
 
 
 class UnknownTaskClassError(Exception):
     pass
 
 
-class RobustQueueTask(Task):
-    arguments: dict[str, Any]
+class RobustQueueTask(Task[P, T]):
+    args: P.args
+    kwargs: P.kwargs
 
     def __post_init__(self):
+        super().__post_init__()
         self.arguments = {}
 
     @property
@@ -39,6 +44,9 @@ class RobustQueueTask(Task):
             backend=backend,
         )
 
+    def enqueue(self, *args: P.args, **kwargs: P.kwargs) -> "TaskResult[T]":
+        return self.get_backend().enqueue(self, args, kwargs)
+
     def set_arguments(self, arguments: dict[str, Any]):
         self.arguments = arguments
 
@@ -49,7 +57,7 @@ class RobustQueueTask(Task):
             "backend": self.backend,
             "queue_name": self.queue_name,
             "priority": self.priority,
-            "arguments": self.arguments,
+            "arguments": Arguments.serialize_args_and_kwargs(self.args, self.kwargs),
             "locale": translation.get_language(),
             "timezone": timezone.get_current_timezone_name(),
             "enqueued_at": timezone.now().isoformat(),
@@ -59,7 +67,7 @@ class RobustQueueTask(Task):
     @classmethod
     def execute(cls, job_data: dict[str, Any]):
         task = cls.deserialize(job_data)
-        task.func(**task.arguments)
+        task.func(*task.args, **task.kwargs)
 
     @classmethod
     def deserialize(cls, job_data: dict[str, Any]):
@@ -75,5 +83,7 @@ class RobustQueueTask(Task):
             backend=job_data["backend"],
         )
 
-        task.set_arguments(job_data["arguments"])
+        task.args, task.kwargs = Arguments.deserialize_args_and_kwargs(
+            job_data["arguments"]
+        )
         return task

@@ -3,7 +3,7 @@ import os
 import signal
 from typing import Iterable, Optional
 
-logger = logging.getLogger("robust_queue.supervisor")
+logger = logging.getLogger("robust_queue")
 
 
 class Signals:
@@ -55,5 +55,5 @@ class Signals:
         try:
             os.kill(pid, signal)
         except OSError:
-            print("error killing process", pid, signal)
+            logger.warning("error killing process", pid, signal)
             pass

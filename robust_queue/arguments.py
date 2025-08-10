@@ -1,4 +1,5 @@
-from django.contrib.contenttypes.models import ContentType
+from typing import Any
+
 from django.db import models
 
 
@@ -13,6 +14,20 @@ class SerializationError(ValueError):
 class Arguments:
     HASH_KEY = "__rq_hash__"
     MODEL_KEY = "__rq_model__"
+
+    @classmethod
+    def serialize_args_and_kwargs(cls, args, kwargs) -> dict[str, Any]:
+        return {
+            "args": cls.serialize(args) if args else [],
+            "kwargs": cls.serialize([kwargs]) if kwargs else {},
+        }
+
+    @classmethod
+    def deserialize_args_and_kwargs(cls, data: dict[str, Any]) -> tuple[list, dict]:
+        return (
+            cls.deserialize(data["args"]) if data["args"] else [],
+            cls.deserialize(data["kwargs"])[0] if data["kwargs"] else {},
+        )
 
     @classmethod
     def serialize(cls, arguments):
@@ -70,6 +85,8 @@ class Arguments:
 
     @classmethod
     def _deserialize_model(cls, model_data):
+        from django.contrib.contenttypes.models import ContentType
+
         app_label = model_data["app_label"]
         model_name = model_data["model"]
         pk = model_data["pk"]

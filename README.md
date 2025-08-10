@@ -16,12 +16,13 @@
 - [x] Recurring tasks
 - [x] Workers per queue
 - [x] Store process metadata
-- [ ] Primary keys
+- [x] Primary keys
+- [x] Compress migrations
 - [ ] Class-based tasks
-- [ ] Argument serialization review
+- [x] Argument serialization review
 - [x] Task backend capabilities
 - [ ] Review logging noisiness
-- [ ] Pidfiles
+- [x] Pidfiles
 - [x] Reorganize code
 - [ ] Concurrency controls
 - [ ] Tests
@@ -29,12 +30,15 @@
 - [ ] Documentation
 - [ ] CI
 - [x] Pre-commit
+- [ ] Remove demo app in favor of test dummy
 - [ ] Queue pausing from admin
 - [ ] Django checks
 - [ ] Retry on database is locked
 - [ ] Django admin for everything -> check out mission control jobs
 - [ ] Django admin permissions
 - [ ] Signals: pre/post enqueue, pre/post perform
+- [ ] Contributing
+- [ ] Readme
 
 ## Deviations from solid queue
 

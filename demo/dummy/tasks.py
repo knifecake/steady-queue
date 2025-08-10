@@ -32,3 +32,13 @@ def recurring_task1():
     This is a recurring task that runs every minute.
     """
     print("I am a recurring task")
+
+
+@task()
+def task_with_args(a: int, b: int):
+    print(f"a + b = {a + b}")
+
+
+@task()
+def task_with_kwargs(name: str = "John"):
+    print(f"Hello, {name}!")

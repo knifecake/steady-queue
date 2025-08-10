@@ -1,4 +1,3 @@
-import uuid
 from contextlib import contextmanager
 
 from django.db import models, transaction
@@ -20,8 +19,6 @@ class UpdatedAtMixin(models.Model):
 
 
 class BaseModel(CreatedAtMixin, models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
     class Meta:
         abstract = True
 
