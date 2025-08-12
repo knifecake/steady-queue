@@ -30,11 +30,14 @@ class ClaimedExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
             execution.failed_with(error)
             execution.unblock_next_job()
 
+    def discard_in_batches(self, batch_size: int = 500):
+        raise ValueError("Cannot discard jobs in progress")
+
 
 class ClaimedExecution(Execution):
     class Meta:
-        verbose_name = "claimed execution"
-        verbose_name_plural = "claimed executions"
+        verbose_name = "in-progress task"
+        verbose_name_plural = "in-progress tasks"
         indexes = (
             models.Index(
                 fields=("process_id", "job_id"), name="ix_rq_claimed_process_job"

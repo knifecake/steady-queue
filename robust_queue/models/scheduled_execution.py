@@ -19,8 +19,8 @@ class ScheduledExecutionQuerySet(models.QuerySet):
 
 class ScheduledExecution(Dispatching, Execution):
     class Meta:
-        verbose_name = "scheduled execution"
-        verbose_name_plural = "scheduled executions"
+        verbose_name = "scheduled task"
+        verbose_name_plural = "scheduled tasks"
 
         indexes = (
             models.Index(

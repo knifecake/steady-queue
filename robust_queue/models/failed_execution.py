@@ -15,8 +15,8 @@ class FailedExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
 
 class FailedExecution(Execution):
     class Meta:
-        verbose_name = "failed execution"
-        verbose_name_plural = "failed executions"
+        verbose_name = "failed task"
+        verbose_name_plural = "failed tasks"
 
     objects = FailedExecutionQuerySet.as_manager()
 

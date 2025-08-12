@@ -14,8 +14,8 @@ class JobQuerySet(ExecutableQuerySet, models.QuerySet):
 
 class Job(Executable, UpdatedAtMixin, BaseModel):
     class Meta:
-        verbose_name = "job"
-        verbose_name_plural = "jobs"
+        verbose_name = "task"
+        verbose_name_plural = "tasks"
         indexes = (
             models.Index(
                 fields=("django_task_id",),
@@ -70,3 +70,9 @@ class Job(Executable, UpdatedAtMixin, BaseModel):
         job.save()
         job.prepare_for_execution()
         return job
+
+    def __str__(self):
+        if isinstance(self.pk, int):
+            return f"#{self.pk}"
+
+        return self.pk

@@ -69,3 +69,6 @@ class Process(Executor, Prunable, BaseModel):
     @property
     def is_supervised(self):
         return self.supervisor_id is not None
+
+    def __str__(self):
+        return self.name

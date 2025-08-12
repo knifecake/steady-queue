@@ -4,6 +4,7 @@ from .failed_execution import FailedExecution
 from .job import Job
 from .pause import Pause
 from .process import Process
+from .queue import Queue
 from .ready_execution import ReadyExecution
 from .recurring_execution import RecurringExecution
 from .recurring_task import RecurringTask
@@ -22,4 +23,5 @@ __all__ = (
     "RecurringTask",
     "ScheduledExecution",
     "Semaphore",
+    "Queue",
 )

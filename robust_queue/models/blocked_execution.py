@@ -9,8 +9,8 @@ class BlockedExecutionQuerySet(ExecutionQuerySet):
 
 class BlockedExecution(Execution):
     class Meta:
-        verbose_name = "blocked execution"
-        verbose_name_plural = "blocked executions"
+        verbose_name = "blocked task"
+        verbose_name_plural = "blocked tasks"
         indexes = (
             models.Index(
                 fields=("concurrency_key", "priority", "job"),
