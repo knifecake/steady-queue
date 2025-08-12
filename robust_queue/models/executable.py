@@ -9,6 +9,15 @@ from robust_queue.models.schedulable import Schedulable, SchedulableQuerySet
 
 
 class ExecutableQuerySet(RetryableQuerySet, SchedulableQuerySet, models.QuerySet):
+    def ready(self):
+        return self.filter(ready_execution__isnull=False)
+
+    def claimed(self):
+        return self.filter(claimed_execution__isnull=False)
+
+    def blocked(self):
+        return self.filter(blocked_execution__isnull=False)
+
     def finished(self):
         return self.filter(finished_at__isnull=False)
 

@@ -6,7 +6,10 @@ from robust_queue.models.scheduled_execution import ScheduledExecution
 
 class SchedulableQuerySet(models.QuerySet):
     def scheduled(self):
-        return self.filter(finished_at__isnull=True)
+        # NOTE: this implementation deviates from solid queue's implementation.
+        # Instead of checking for not finished jobs, we check for jobs that have
+        # a scheduled execution.
+        return self.filter(scheduled_execution__isnull=False)
 
     def successfully_scheduled(self, jobs):
         return self.filter(scheduled_execution__job__in=jobs)
