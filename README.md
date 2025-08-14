@@ -18,23 +18,23 @@
 - [x] Store process metadata
 - [x] Primary keys
 - [x] Compress migrations
-- [ ] Class-based tasks
 - [x] Argument serialization review
 - [x] Task backend capabilities
-- [ ] Review logging noisiness
+- [x] Django admin for everything -> check out mission control jobs
+- [x] Queue pausing from admin
+- [x] Pre-commit
+- [x] CI
 - [x] Pidfiles
 - [x] Reorganize code
+- [ ] Review logging noisiness
 - [ ] Concurrency controls
 - [ ] Tests
 - [ ] Use postgresql
 - [ ] Documentation
-- [ ] CI
-- [x] Pre-commit
 - [ ] Remove demo app in favor of test dummy
-- [ ] Queue pausing from admin
+- [ ] Class-based tasks
 - [ ] Django checks
 - [ ] Retry on database is locked
-- [ ] Django admin for everything -> check out mission control jobs
 - [ ] Django admin permissions
 - [ ] Signals: pre/post enqueue, pre/post perform
 - [ ] Contributing

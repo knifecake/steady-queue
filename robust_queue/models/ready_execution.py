@@ -100,3 +100,6 @@ class ReadyExecution(Execution):
             "queue_name": job.queue_name,
             "priority": job.priority,
         }
+
+    def __str__(self) -> str:
+        return f"{self.job_id} {self.queue_name}"

@@ -1,8 +1,11 @@
-from functools import reduce
-
-
 def flatten(iterable):
-    return list(reduce(lambda x, y: x + y, iterable, []))
+    result = []
+    for item in iterable:
+        if isinstance(item, list):
+            result.extend(item)
+        else:
+            result.append(item)
+    return result
 
 
 def flat_map(func, *iterables):

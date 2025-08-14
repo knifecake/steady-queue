@@ -35,7 +35,7 @@ class QueueSelector:
 
     @property
     def queue_names(self) -> list[str]:
-        return list(set(self.eligible_queues) - set(self.paused_queues))
+        return [q for q in self.eligible_queues if q not in self.paused_queues]
 
     @property
     def eligible_queues(self) -> list[str]:
@@ -61,7 +61,7 @@ class QueueSelector:
         if len(self.prefixes) == 0:
             return []
         else:
-            return (
+            return list(
                 reduce(
                     or_,
                     [
@@ -103,9 +103,10 @@ class QueueSelector:
 
     def delete_in_order(self, raw_queue: str, queues: list[str]) -> list[str]:
         if self.is_exact_name(raw_queue):
-            return queues.remove(raw_queue)
+            queues.remove(raw_queue)
+            return raw_queue
         elif self.is_prefixed_name(raw_queue):
             prefix = raw_queue.replace("*", "")
             matches = [q for q in queues if q.startswith(prefix)]
-            queues -= matches
-            return queues
+            [queues.remove(m) for m in matches]
+            return matches
