@@ -541,51 +541,6 @@ wheels = [
 ]
 
 [[package]]
-name = "robust-queue"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "crontab" },
-    { name = "django" },
-    { name = "django-tasks" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "coverage" },
-    { name = "django-stubs", extra = ["compatible-mypy"] },
-    { name = "django-stubs-ext" },
-    { name = "ipython" },
-    { name = "mypy" },
-    { name = "pre-commit" },
-    { name = "psycopg", extra = ["binary", "pool"] },
-    { name = "ruff" },
-    { name = "ty" },
-    { name = "types-python-crontab" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "crontab", specifier = ">=1.0.5" },
-    { name = "django", specifier = ">=5.2" },
-    { name = "django-tasks", specifier = ">=0.8.1" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "coverage", specifier = ">=7.10.2" },
-    { name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.2.2" },
-    { name = "django-stubs-ext", specifier = ">=5.2.2" },
-    { name = "ipython", specifier = ">=9.4.0" },
-    { name = "mypy", specifier = ">=1.17.1" },
-    { name = "pre-commit", specifier = ">=4.0.1" },
-    { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.2.6" },
-    { name = "ruff", specifier = ">=0.11.6" },
-    { name = "ty", specifier = ">=0.0.1a17" },
-    { name = "types-python-crontab", specifier = ">=3.3.0.20250715" },
-]
-
-[[package]]
 name = "ruff"
 version = "0.11.6"
 source = { registry = "https://pypi.org/simple" }
@@ -631,6 +586,51 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/28/e3/55dcc2cfbc3ca9c29519eb6884dd1415ecb53b0e934862d3559ddcb7e20b/stack_data-0.6.3.tar.gz", hash = "sha256:836a778de4fec4dcd1dcd89ed8abff8a221f58308462e1c4aa2a3cf30148f0b9", size = 44707 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f1/7b/ce1eafaf1a76852e2ec9b22edecf1daa58175c090266e9f6c64afcd81d91/stack_data-0.6.3-py3-none-any.whl", hash = "sha256:d5558e0c25a4cb0853cddad3d77da9891a08cb85dd9f9f91b9f8cd66e511e695", size = 24521 },
+]
+
+[[package]]
+name = "steady-queue"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "crontab" },
+    { name = "django" },
+    { name = "django-tasks" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "coverage" },
+    { name = "django-stubs", extra = ["compatible-mypy"] },
+    { name = "django-stubs-ext" },
+    { name = "ipython" },
+    { name = "mypy" },
+    { name = "pre-commit" },
+    { name = "psycopg", extra = ["binary", "pool"] },
+    { name = "ruff" },
+    { name = "ty" },
+    { name = "types-python-crontab" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "crontab", specifier = ">=1.0.5" },
+    { name = "django", specifier = ">=5.2" },
+    { name = "django-tasks", specifier = ">=0.8.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "coverage", specifier = ">=7.10.2" },
+    { name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.2.2" },
+    { name = "django-stubs-ext", specifier = ">=5.2.2" },
+    { name = "ipython", specifier = ">=9.4.0" },
+    { name = "mypy", specifier = ">=1.17.1" },
+    { name = "pre-commit", specifier = ">=4.0.1" },
+    { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.2.6" },
+    { name = "ruff", specifier = ">=0.11.6" },
+    { name = "ty", specifier = ">=0.0.1a17" },
+    { name = "types-python-crontab", specifier = ">=3.3.0.20250715" },
 ]
 
 [[package]]

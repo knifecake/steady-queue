@@ -1,8 +1,7 @@
 import time
 
 from django_tasks import task
-
-from robust_queue.recurring_task import recurring
+from steady_queue.recurring_task import recurring
 
 
 @task()

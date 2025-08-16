@@ -25,6 +25,7 @@
 - [x] CI
 - [x] Pidfiles
 - [x] Reorganize code
+- [x] Rename to Steady Queue
 - [ ] Review logging noisiness
 - [ ] Concurrency controls
 - [ ] Lifecycle hooks on processes
@@ -39,4 +40,3 @@
 - [ ] Contributing
 - [ ] Readme
 - [ ] Support for multiple databases
-- [ ] Rename to Steady Queue

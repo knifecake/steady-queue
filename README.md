@@ -1,25 +1,25 @@
-# Robust Queue
+# Steady Queue
 
-Robust Queue is a port to Django of the excellent [Solid
+Steady Queue is a port to Django of the excellent [Solid
 Queue][solid-queue-github] DB-based queueing backend for Ruby on Rails. The goal
 of this port has been to keep the internals as close as possible to a direct
 translation from Ruby to Python, while adapting the external interfaces to be
-idiomatic in Django and Python. Read more on the differences between Robust
+idiomatic in Django and Python. Read more on the differences between Steady
 Queue and Solid Queue below.
 
-Robust queue exposes a task backend that is compatible with the background worker specification outlined in [DEP 0014][DEP0014]. In addition to task enqueueing and processing, it supports delayed tasks, concurrency controls, recurring tasks, pausing queues, numeric priorities per task, priorities by queue order and bulk enqueueing.
+Steady queue exposes a task backend that is compatible with the background worker specification outlined in [DEP 0014][DEP0014]. In addition to task enqueueing and processing, it supports delayed tasks, concurrency controls, recurring tasks, pausing queues, numeric priorities per task, priorities by queue order and bulk enqueueing.
 
-Robust Queue can be used with SQL databases such as MySQL, PostgreSQL or SQLite, and it leverages the `FOR UPDATE SKIP LOCKED` clause, if available, to avoid blocking and waiting on locks when polling tasks.
+Steady Queue can be used with SQL databases such as MySQL, PostgreSQL or SQLite, and it leverages the `FOR UPDATE SKIP LOCKED` clause, if available, to avoid blocking and waiting on locks when polling tasks.
 
 ## Installation
 
-1. **Install the `robust_queue` package.** Since Robust Queue depends on interfaces defined by DEP 0014 which has not become part of Django yet, it will add django-tasks (the reference implementation) as a dependency.
-2. **Add `robust_queue` and `django_tasks` to your `INSTALLED_APPS`** in `settings.py`.
-3. **Configure Robust Queue as a task backend.** In `settings.py`, add the Robust Queue backend:
+1. **Install the `steady_queue` package.** Since Steady Queue depends on interfaces defined by DEP 0014 which has not become part of Django yet, it will add django-tasks (the reference implementation) as a dependency.
+2. **Add `steady_queue` and `django_tasks` to your `INSTALLED_APPS`** in `settings.py`.
+3. **Configure Steady Queue as a task backend.** In `settings.py`, add the Steady Queue backend:
    ```python
    TASKS = {
        "default": {
-           "BACKEND": "robust_queue.backend.RobustQueueBackend",
+           "BACKEND": "steady_queue.backend.SteadyQueueBackend",
            "QUEUES": ["default"],
            "OPTIONS": {},
        }
@@ -28,13 +28,13 @@ Robust Queue can be used with SQL databases such as MySQL, PostgreSQL or SQLite,
 4. **Migrate your database** with `python3 manage.py migrate`.
 
 
-Now you're ready to start processing tasks by running `python manage.py robust_queue` on the server that's doing the work. This will start processing tasks in all queues using the default configuration. See below to learn more about configuring Robust Queue.
+Now you're ready to start processing tasks by running `python manage.py steady_queue` on the server that's doing the work. This will start processing tasks in all queues using the default configuration. See below to learn more about configuring Steady Queue.
 
-For small projects, you can run Robust Queue on the same machine as your webserver. When you're ready to scale, Robust Queue supports horizontal scaling out-of-the-box. You can run Robust Queue on a separate server from your webserver, or even run `python manage.py robust_queue` on multiple machines at the same time. Depending on the configuration, you can designate some machines to run only dispatchers or only workers. See the configuration section for more details on this.
+For small projects, you can run Steady Queue on the same machine as your webserver. When you're ready to scale, Steady Queue supports horizontal scaling out-of-the-box. You can run Steady Queue on a separate server from your webserver, or even run `python manage.py steady_queue` on multiple machines at the same time. Depending on the configuration, you can designate some machines to run only dispatchers or only workers. See the configuration section for more details on this.
 
 ## Usage
 
-Robust Queue works like any other DEP 0014-compatible task backend.
+Steady Queue works like any other DEP 0014-compatible task backend.
 
 Tasks are functions decorated with the `@task` decorator from `django_tasks`
 (which will become `django.tasks` once integrated into Django):
@@ -59,7 +59,7 @@ greet.enqueue('World', 4)
 The task decorator accepts these arguments to customize the task:
 
 ```python
-@task(priority=10, queue_name='real_time', backend='robust_queue')
+@task(priority=10, queue_name='real_time', backend='steady_queue')
 def tralalero():
     print('tralala')
 ```
@@ -77,7 +77,7 @@ tralalero.using(priority=9, queue_name='low_importance').enqueue()
 
 ### Running tasks in the future
 
-Robust Queue supports enqueueing tasks to be run at a later time via the
+Steady Queue supports enqueueing tasks to be run at a later time via the
 `run_after` parameter to `.using()`:
 
 ```python
@@ -93,43 +93,43 @@ greet.using(run_after=timezone.timedelta(minutes=1)).enqueue('hello')
 ### Argument serialization
 
 Task functions can take almost any argument as either positional or keyword
-arguments. Robust Queue improves on the serialization specified by DEP 0014 by
+arguments. Steady Queue improves on the serialization specified by DEP 0014 by
 supporting timestamps, timedeltas and Django models. Django models are
 serialized by storing the content type and object ID. If the model does not
 exist on the database when the task is executed, a
-`robust_queue.arguments.DeserializationError` is raised.
+`steady_queue.arguments.DeserializationError` is raised.
 
 ### Incremental adoption
 
-If you're planning to adopt Robust Queue incrementally by switching one task at
+If you're planning to adopt Steady Queue incrementally by switching one task at
 a time, you can do so by setting the `backend` attribute on the `@task()`
 decorator.
 
 ### High performance requirements
 
-Robust Queue was designed for the highest throughput when used with MySQL 8+ or PostgreSQL 9.5+, as they support `FOR UPDATE SKIP LOCKED`. You can use it with older versions, but in that case, you might run into lock waits if you run multiple workers for the same queue. You can also use it with SQLite on smaller applications.
+Steady Queue was designed for the highest throughput when used with MySQL 8+ or PostgreSQL 9.5+, as they support `FOR UPDATE SKIP LOCKED`. You can use it with older versions, but in that case, you might run into lock waits if you run multiple workers for the same queue. You can also use it with SQLite on smaller applications.
 
 ## Configuration
 
 ### Workers, dispatchers and scheduler
 
-We have several types of actors in Robust Queue:
+We have several types of actors in Steady Queue:
 
-- _Workers_ are in charge of picking tasks ready to run from queues and processing them. They work off the `robust_queue_ready_executions` table.
-- _Dispatchers_ are in charge of selecting tasks scheduled to run in the future that are due and _dispatching_ them, which is simply moving them from the `robust_queue_scheduled_executions` table over to the `robust_queue_ready_executions` table so that workers can pick them up. On top of that, they do some maintenance work related to [concurrency controls](#concurrency-controls).
+- _Workers_ are in charge of picking tasks ready to run from queues and processing them. They work off the `steady_queue_ready_executions` table.
+- _Dispatchers_ are in charge of selecting tasks scheduled to run in the future that are due and _dispatching_ them, which is simply moving them from the `steady_queue_scheduled_executions` table over to the `steady_queue_ready_executions` table so that workers can pick them up. On top of that, they do some maintenance work related to [concurrency controls](#concurrency-controls).
 - The _scheduler_ manages [recurring tasks](#recurring-tasks), enqueuing tasks for them when they're due.
 - The _supervisor_ runs workers and dispatchers according to the configuration, controls their heartbeats, and stops and starts them when needed.
 
-Robust Queue's supervisor will fork a separate process for each supervised worker/dispatcher/scheduler.
+Steady Queue's supervisor will fork a separate process for each supervised worker/dispatcher/scheduler.
 
-Robust Queue will try to find our configuration under the `ROBUST_QUEUE` variable in `settings.py`. Everything is optional. If no configuration is provided, Robust Queue will run with one dispatcher and one worker per the default settings:
+Steady Queue will try to find our configuration under the `STEADY_QUEUE` variable in `settings.py`. Everything is optional. If no configuration is provided, Steady Queue will run with one dispatcher and one worker per the default settings:
 
 ```python
 # settings.py
-from robust_queue.configuration import Configuration
+from steady_queue.configuration import Configuration
 from datetime import timedelta
 
-ROBUST_QUEUE = Configuration.ConfigurationOptions(
+STEADY_QUEUE = Configuration.ConfigurationOptions(
     dispatchers=[
         Configuration.DispatcherConfiguration(
             polling_interval=timedelta(seconds=1),
@@ -146,7 +146,7 @@ ROBUST_QUEUE = Configuration.ConfigurationOptions(
 )
 ```
 
-Everything is optional. If no configuration is provided at all, or no configuration is given for workers or dispatchers, Robust Queue will run with the defaults above.
+Everything is optional. If no configuration is provided at all, or no configuration is given for workers or dispatchers, Steady Queue will run with the defaults above.
 
 Here's an overview of the different options:
 
@@ -205,8 +205,8 @@ polled in the order given, such as for the list `'real_time', 'background'`, no
 tasks will be taken from `background` unless there aren't any more tasks waiting
 in `real_time`.
 
-Robust Queue also supports positive integer priorities when enqueuing tasks. In
-Robust Queue, the smaller the value, the higher the priority. The default is
+Steady Queue also supports positive integer priorities when enqueuing tasks. In
+Steady Queue, the smaller the value, the higher the priority. The default is
 `0`.
 
 This is useful when you run tasks with different importance or urgency in the
@@ -227,14 +227,14 @@ Queue only does two types of polling queries:
 ```sql
 -- No filtering by queue
 SELECT job_id
-FROM robust_queue_ready_executions
+FROM steady_queue_ready_executions
 ORDER BY priority ASC, job_id ASC
 LIMIT ?
 FOR UPDATE SKIP LOCKED;
 
 -- Filtering by a single queue
 SELECT job_id
-FROM robust_queue_ready_executions
+FROM steady_queue_ready_executions
 WHERE queue_name = ?
 ORDER BY priority ASC, job_id ASC
 LIMIT ?
@@ -260,7 +260,7 @@ we'll need to get a list of all existing queues matching that prefix first, with
 
 ```sql
 SELECT DISTINCT(queue_name)
-FROM robust_queue_ready_execution
+FROM steady_queue_ready_execution
 WHERE queue_name LIKE 'beta%';
 ```
 
@@ -269,9 +269,9 @@ can be performed very fast in MySQL thanks to a technique called [Loose Index
 Scan](https://dev.mysql.com/doc/refman/8.0/en/group-by-optimization.html#loose-index-scan).
 
 PostgreSQL and SQLite, however, don't implement this technique, which means that
-if your `robust_queue_ready_executions` table is very big because your queues
+if your `steady_queue_ready_executions` table is very big because your queues
 get very deep, this query will get slow. Normally your
-`robust_queue_ready_executions` table will be small, but it can happen.
+`steady_queue_ready_executions` table will be small, but it can happen.
 
 Similarly to using prefixes, the same will happen if you have paused queues,
 because we need to get a list of all queues with a query like
@@ -304,7 +304,7 @@ queues=['back*']
 
 ### Threads, processes and signals
 
-Workers in Robust Queue use a thread pool to run work in multiple threads,
+Workers in Steady Queue use a thread pool to run work in multiple threads,
 configurable via the `threads` parameter above. Besides this, parallelism can be
 achieved via multiple processes on one machine (configurable via different
 workers or the `processes` parameter above) or by horizontal scaling.
@@ -314,7 +314,7 @@ following signals:
 
 - `TERM`, `INT`: starts graceful termination. The supervisor will send a `TERM`
   signal to its supervised processes, and it'll wait up to
-  `robust_queue.shutdown_timeout` time until they're done. If any supervised
+  `steady_queue.shutdown_timeout` time until they're done. If any supervised
   processes are still around by then, it'll send a `QUIT` signal to them to
   indicate they must exit.
 - `QUIT`: starts immediate termination. The supervisor will send a `QUIT` signal
@@ -328,14 +328,14 @@ a cable somewhere), in-flight tasks might remain claimed by the processes
 executing them. Processes send heartbeats, and the supervisor checks and prunes
 processes with expired heartbeats. Tasks that were claimed by processes with an
 expired heartbeat will be marked as failed with a
-`robust_queue.processes.ProcessPrunedError` exception. You can configure both
+`steady_queue.processes.ProcessPrunedError` exception. You can configure both
 the frequency of heartbeats and the threshold to consider a process dead. See
 the section below for this.
 
 In a similar way, if a worker is terminated in any other way not initiated by
 the above signals (e.g. a worker is sent a `KILL` signal), tasks in progress
 will be marked as failed so that they can be inspected, with a
-`robust_queue.processes.ProcessExitError` exception. Sometimes a task in
+`steady_queue.processes.ProcessExitError` exception. Sometimes a task in
 particular is responsible for this, for example, if it has a memory leak and you
 have a mechanism to kill processes over a certain memory threshold, so this will
 help identifying this kind of situation.
@@ -346,12 +346,12 @@ TODO
 
 ### Other configuration settings
 
-*Note*: The settings in this section should be set directly on the `robust_queue` module. You can do this on `settings.py` as well:
+*Note*: The settings in this section should be set directly on the `steady_queue` module. You can do this on `settings.py` as well:
 
 ```python
-import robust_queue
+import steady_queue
 
-robust_queue.process_heartbeat_interval = timedelta(minutes=5)
+steady_queue.process_heartbeat_interval = timedelta(minutes=5)
 ```
 
 There are several settings that control how RObust Queue works that you can set as well:
@@ -366,9 +366,9 @@ There are several settings that control how RObust Queue works that you can set 
 - `supervisor_pidfile`: path to a pidfile that the supervisor will create when
   booting to prevent running more than one supervisor in the same host, or in
   case you want to use it for a health check. It's set to
-  `tmp/pids/robust_queue_supervisor.pid` by default.
+  `tmp/pids/steady_queue_supervisor.pid` by default.
 - `preserve_finished_jobs`: whether to keep finished jobs in the
-  `robust_queue_jobs` table—defaults to `True`.
+  `steady_queue_jobs` table—defaults to `True`.
 - `clear_finished_jobs_after`: period to keep finished jobs around, in case
   `preserve_finished_jobs` is true—defaults to 1 day. **Note:** Right now,
   there's no automatic cleanup of finished jobs. You'd need to do this by
@@ -411,9 +411,9 @@ unless your task is also committed and vice versa, and ensuring that your task
 won't be enqueued until the transaction within which you're enqueuing it is
 committed. This can be very powerful and useful, but it can also backfire if you
 base some of your logic on this behavior, and in the future, you move to another
-active task backend, or if you simply move Robust Queue to its own database, and
+active task backend, or if you simply move Steady Queue to its own database, and
 suddenly the behavior changes under you. Because this can be quite tricky and
-many people shouldn't need to worry about it, by default Robust Queue is
+many people shouldn't need to worry about it, by default Steady Queue is
 configured in a different database as the main app.
 
 By default, the `@task` decorator sets the `enqueue_on_commit` flag to `True`,
@@ -432,16 +432,16 @@ def my_task():
 my_task.using(enqueue_on_commit=True).enqueue()
 ```
 
-Using this option, you can also use Robust Queue in the same database as your app but not rely on transactional integrity.
+Using this option, you can also use Steady Queue in the same database as your app but not rely on transactional integrity.
 
 ## Recurring tasks
 
-Robust Queue supports defining recurring tasks that run at specific times in the
+Steady Queue supports defining recurring tasks that run at specific times in the
 future, on a regular basis like cron jobs. These are managed by the scheduler
 process and are defined using the `@recurring` decorator:
 
 ```python
-from robust_queue import recurring
+from steady_queue import recurring
 
 @recurring(schedule="0 12 * * *", key="rot the brains at noon")
 @task()
@@ -491,7 +491,7 @@ Tasks are enqueued at their corresponding times by the scheduler, and each task 
 It is possible to run multiple schedulers, for example, if you have multiple
 servers for redundancy and your run the `scheduler` in more than one of them. To
 avoid enqueueing duplicate tasks at the same time, an entry in the
-`robust_queue_recurringexecution` table is added in the same transaction as the
+`steady_queue_recurringexecution` table is added in the same transaction as the
 job is enqueued. This table has a unique index on `task_key` and `run_at`,
 ensuring only one entry per task per time will be created. This only works if
 you have `preserve_finished_tasks` set to `True` (the default), and the
@@ -506,7 +506,7 @@ The implementation of the task backend is largely a direct translation from Ruby
   - Class methods in Rails models generally become model manager methods under Django. Similarly, Active Record scopes are translated as queryset methods.
 - ActiveJobs (the interface for background tasks in Ruby on Rails) are called
   tasks.
-  - Since Robust Queue follows [DEP 0014][DEP0014] for its public API, tasks are
+  - Since Steady Queue follows [DEP 0014][DEP0014] for its public API, tasks are
     decorated functions instead of classes.
   - Some features of ActiveJob, like dynamically setting queue names,
     priorities, concurrency keys, retry policies or exceptions to be caught are
@@ -514,16 +514,16 @@ The implementation of the task backend is largely a direct translation from Ruby
     approach to tasks. Users are encouraged to write their own decorators or
     otherwise make use of the `.using()` method of classes to configure these
     parameters dynamically where needed.
-- Robust Queue provides dashboards that integrate with the Django admin site and
+- Steady Queue provides dashboards that integrate with the Django admin site and
   are roughly equivalent to [mission_control-jobs][mission_control-jobs], but
   without requiring an external dependency.
 - Command-based recurring tasks (ie, those defined by passing code directly to
-  the task schedule) are not supported in Robust Queue. Considering the ease
+  the task schedule) are not supported in Steady Queue. Considering the ease
   with which a function can be scheduled as a periodic task, it is unlikely this
   will ever be supported, but we've kept the database column for compatibility.
-- Robust Queue worker processes do not set the process name (or procline)
+- Steady Queue worker processes do not set the process name (or procline)
   because doing so requires introducing an external dependency.
-- Robust Queue does not expose rich instrumentation like Solid Queue does due to
+- Steady Queue does not expose rich instrumentation like Solid Queue does due to
   the lack of a framework-native equivalent to `ActiveSupport::Notifications`.
 
 

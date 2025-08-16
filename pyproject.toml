@@ -1,5 +1,5 @@
 [project]
-name = "robust-queue"
+name = "steady-queue"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-robust-queue = "robust_queue:main"
+steady-queue = "steady_queue:main"
 
 [tool.ruff]
 line-length = 88
@@ -26,7 +26,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["robust_queue*"]
+include = ["steady_queue*"]
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]

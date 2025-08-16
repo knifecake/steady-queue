@@ -14,7 +14,7 @@ import os
 import sys
 from pathlib import Path
 
-from robust_queue.configuration import Configuration
+from steady_queue.configuration import Configuration
 
 sys.path.insert(0, os.path.abspath(".."))
 
@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_tasks",
-    "robust_queue",
+    "steady_queue",
     "dummy",
 ]
 
@@ -96,7 +96,7 @@ DATABASES = {
 # Tasks
 TASKS = {
     "default": {
-        "BACKEND": "robust_queue.backend.RobustQueueBackend",
+        "BACKEND": "steady_queue.backend.SteadyQueueBackend",
         "QUEUES": ["default"],
         "OPTIONS": {},
     }
@@ -159,7 +159,7 @@ LOGGING = {
         },
     },
     "loggers": {
-        "robust_queue": {
+        "steady_queue": {
             "handlers": ["console"],
             "level": "DEBUG",
         },
@@ -167,7 +167,7 @@ LOGGING = {
 }
 
 
-ROBUST_QUEUE = Configuration.ConfigurationOptions(
+STEADY_QUEUE = Configuration.ConfigurationOptions(
     workers=[
         Configuration.WorkerConfiguration(queues=["default"]),
         Configuration.WorkerConfiguration(queues=["isolated"]),

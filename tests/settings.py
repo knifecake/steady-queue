@@ -1,6 +1,5 @@
 import os
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 SECRET_KEY = "fake-key"
@@ -11,7 +10,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "tests",
     "tests.dummy",
-    "robust_queue",
+    "steady_queue",
 ]
 
 DATABASES = {
