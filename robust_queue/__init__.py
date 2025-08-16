@@ -13,4 +13,4 @@ clear_finished_jobs_after: timedelta = timedelta(days=1)
 
 default_concurrency_control_period: timedelta = timedelta(minutes=3)
 
-supervisor_pidfile: Optional[str] = "tmp/pids/supervisor.pid"
+supervisor_pidfile: Optional[str] = "tmp/pids/robust_queue_supervisor.pid"

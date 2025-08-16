@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Optional
 
 from robust_queue.configuration import Configuration
 from robust_queue.task import RobustQueueTask
@@ -11,7 +11,8 @@ configurations = []
 def recurring(
     schedule: str,
     key: str,
-    arguments: Optional[dict[str, Any]] = None,
+    args: Optional[list] = None,
+    kwargs: Optional[dict] = None,
     queue_name: Optional[str] = None,
     priority: int = 0,
     description: Optional[str] = None,
@@ -29,11 +30,13 @@ def recurring(
 
     def wrapper(task: RobustQueueTask):
         class_name = task.module_path
+        task.args = args
+        task.kwargs = kwargs
         configuration = Configuration.RecurringTaskConfiguration(
             key=key,
             class_name=class_name,
             schedule=schedule,
-            arguments=arguments,
+            arguments=task.serialize(),
             queue_name=queue_name,
             priority=priority,
             description=description,

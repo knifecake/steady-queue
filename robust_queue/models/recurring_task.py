@@ -7,6 +7,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.utils.module_loading import import_string
 
+from robust_queue.arguments import Arguments
 from robust_queue.configuration import Configuration
 from robust_queue.models.base import BaseModel, UpdatedAtMixin
 from robust_queue.models.recurring_execution import RecurringExecution
@@ -110,9 +111,12 @@ class RecurringTask(UpdatedAtMixin, BaseModel):
 
     def enqueue_and_record(self, run_at: datetime):
         with transaction.atomic():
+            args, kwargs = Arguments.deserialize_args_and_kwargs(
+                self.arguments["arguments"]
+            )
             result = self.job_class.using(
                 queue_name=self.queue_name, priority=self.priority
-            ).enqueue()
+            ).enqueue(*args, **kwargs)
             RecurringExecution.objects.record(result, self, run_at)
 
     @property
