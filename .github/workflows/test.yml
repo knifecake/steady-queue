@@ -41,6 +41,7 @@ jobs:
 
       - name: Run tests
         run: |
+          tests/bin/run-docker-postgres
           uv run coverage run runtests.py
 
       - name: Report coverage
