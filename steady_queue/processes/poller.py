@@ -27,9 +27,11 @@ class Poller(Runnable, Interruptible, Registrable, Base):
 
     def run(self):
         logger.info(
-            "%s polling every %g seconds",
-            self.kind,
-            self.polling_interval.total_seconds(),
+            "%(name)s polling every %(polling_interval)g seconds",
+            {
+                "name": self.name,
+                "polling_interval": self.polling_interval.total_seconds(),
+            },
         )
         self.start_loop()
 

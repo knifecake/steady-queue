@@ -48,7 +48,10 @@ def recurring(
             description=description,
         )
         configurations.append(configuration)
-        logger.info("Configured recurring task: %s", configuration)
+        logger.info(
+            "configured recurring task: %(configuration)s",
+            {"configuration": configuration},
+        )
 
         return task
 

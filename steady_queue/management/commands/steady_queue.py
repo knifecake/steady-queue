@@ -7,8 +7,6 @@ from django.utils.module_loading import autodiscover_modules
 from steady_queue.processes.supervisor import Supervisor
 
 logger = logging.getLogger("steady_queue")
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
 
 
 class Command(BaseCommand):

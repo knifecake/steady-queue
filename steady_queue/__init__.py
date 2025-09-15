@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Optional
 
-VERSION = (0, 1, "0b4")
+VERSION = (0, 1, "0b5")
 
 __version__ = ".".join(map(str, VERSION))
 

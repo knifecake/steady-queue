@@ -32,7 +32,7 @@ class AppExecutor:
         except Exception as e:
             # Handle any database-related errors
             # Close connection on error to prevent connection leaks
-            logger.exception("Error in AppExecutor: %s", e)
+            logger.exception("error in AppExecutor: %(e)s", {"e": e})
             if connection.connection:
                 connection.close()
             raise

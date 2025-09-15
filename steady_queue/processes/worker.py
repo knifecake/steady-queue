@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 
 from django.db import models
+
 from steady_queue.configuration import Configuration
 from steady_queue.models.ready_execution import ReadyExecution
 from steady_queue.processes.poller import Poller
@@ -30,7 +31,14 @@ class Worker(Poller):
     def poll(self) -> timedelta:
         claimed_executions = self.claim_executions()
         for execution in claimed_executions:
-            logger.info("%s claimed job %s", self.name, execution.job_id)
+            logger.info(
+                "%(worker)s claimed job %(job_id)s %(task_name)s",
+                {
+                    "worker": self.name,
+                    "job_id": execution.job_id,
+                    "class_name": execution.job.class_name,
+                },
+            )
             self.pool.post(execution)
 
         return self.polling_interval if self.pool.is_idle else timedelta(minutes=10)

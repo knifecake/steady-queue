@@ -40,7 +40,6 @@ DATABASES = {
 }
 
 if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
-    print("Enabling connection pooling")
     DATABASES["default"]["OPTIONS"] = {"pool": {"min_size": 2, "max_size": 4}}
 
 
@@ -102,3 +101,36 @@ STEADY_QUEUE = Configuration.ConfigurationOptions(
         )
     ],
 )
+
+
+# Logging
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+        },
+        "django.server": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+        "django.server": {
+            "handlers": ["django.server"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "steady_queue": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

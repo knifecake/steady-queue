@@ -68,9 +68,8 @@ class Base:
                     options = db_config.setdefault("OPTIONS", {})
                     if "pool" in options:
                         logger.info(
-                            "PID %d disabling connection pooling for database '%s'",
-                            os.getpid(),
-                            alias,
+                            "%(name)s disabling connection pooling for database '%(alias)s'",
+                            {"name": self.name, "alias": alias},
                         )
                         del options["pool"]
 
@@ -82,14 +81,13 @@ class Base:
                     connection.pool.close()
                     connection.pool = None
                     logger.debug(
-                        "PID %d removed existing pool for '%s'", os.getpid(), alias
+                        "%(name)s removed existing pool for '%(alias)s'",
+                        {"name": self.name, "alias": alias},
                     )
                 except Exception as e:
                     logger.debug(
-                        "PID %d failed to close existing pool for '%s': %s",
-                        os.getpid(),
-                        alias,
-                        e,
+                        "%(name)s failed to close existing pool for '%(alias)s': %(e)s",
+                        {"name": self.name, "alias": alias, "e": e},
                     )
 
     def reset_database_connections(self):
@@ -99,8 +97,6 @@ class Base:
         This disables connection pooling and resets connection state to prevent
         issues with shared connections between parent and child processes.
         """
-        # First disable connection pooling for steady_queue processes
         self.disable_connection_pooling()
 
-        # Close all existing connections
         connections.close_all()

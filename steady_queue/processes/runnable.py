@@ -1,5 +1,4 @@
 import logging
-import os
 
 from steady_queue.processes.supervised import Supervised
 
@@ -10,16 +9,12 @@ class Runnable(Supervised):
     mode: str = "async"
 
     def start(self):
-        logger.info("starting runnable %s (PID %d)", self.name, os.getpid())
         self.boot()
-        logger.debug("booted runnable %s", self.name)
 
         if self.is_running_async:
             raise NotImplementedError
         else:
-            logger.debug("running runnable %s", self.name)
             self.run()
-            logger.info("runnable %s finished, exiting", self.name)
 
     def stop(self):
         super().stop()

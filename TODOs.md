@@ -29,7 +29,7 @@
 - [x] Test using PostgreSQL
 - [x] Remove demo app in favor of test dummy
 - [x] Configure package builds
-- [ ] Review logging noisiness
+- [x] Review logging noisiness
 - [ ] Concurrency controls
 - [ ] Lifecycle hooks on processes
 - [ ] Tests

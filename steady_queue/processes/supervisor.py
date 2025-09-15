@@ -38,7 +38,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
         super().__init__()
 
     def start(self) -> None:
-        logger.info("Starting supervisor with PID %d", self.pid)
+        logger.info("starting supervisor with PID %(pid)d", {"pid": self.pid})
         self.boot()
         self.start_processes()
         self.launch_maintenance_task()
@@ -71,25 +71,17 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
             self.shutdown()
 
     def start_process(self, process: Configuration.Process) -> None:
-        logger.info(
-            "Starting process %s (called from PID %d, should be supervisor)",
-            process,
-            os.getpid(),
-        )
+        logger.info("starting process %(process)s", {"process": process})
         instance = process.instantiate()
         instance.supervisor = self.process
         instance.mode = "fork"
 
         if (pid := os.fork()) == 0:
             # child
-            logger.info("Child process %d starting %s", os.getpid(), instance.name)
             instance.start()
             sys.exit(0)  # Ensure child process exits after instance.start()
 
         # parent
-        logger.info(
-            "Parent process %d forked child %d for %s", os.getpid(), pid, process.kind
-        )
         self.reset_database_connections()
         self.configured_processes[pid] = process
         self.forks[pid] = instance

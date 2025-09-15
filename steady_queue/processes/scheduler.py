@@ -56,7 +56,8 @@ class Scheduler(Runnable, Interruptible, Registrable, Base):
 
     def schedule_recurring_tasks(self):
         logger.info(
-            "Scheduling recurring tasks from %s", self.recurring_schedule.task_keys
+            "scheduling recurring tasks: %(task_keys)s",
+            {"task_keys": self.recurring_schedule.task_keys},
         )
         self.recurring_schedule.schedule_tasks()
 
