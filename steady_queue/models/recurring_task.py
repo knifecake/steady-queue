@@ -114,10 +114,10 @@ class RecurringTask(UpdatedAtMixin, BaseModel):
             args, kwargs = Arguments.deserialize_args_and_kwargs(
                 self.arguments["arguments"]
             )
-            result = self.job_class.using(
+            task_result = self.job_class.using(
                 queue_name=self.queue_name, priority=self.priority
             ).enqueue(*args, **kwargs)
-            RecurringExecution.objects.record(result, self, run_at)
+            RecurringExecution.objects.record(task_result, self, run_at)
 
     @property
     def previous_time(self) -> datetime:

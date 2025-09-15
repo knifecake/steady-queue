@@ -1,5 +1,3 @@
-from contextlib import contextmanager
-
 from django.db import models
 from django_tasks import TaskResult
 
@@ -10,13 +8,10 @@ class RecurringExecutionQuerySet(ExecutionQuerySet):
     def clearable(self):
         return self.filter(job__isnull=True)
 
-    def create_or_insert(self, **kwargs):
-        # TODO: wtf
-        self.create(**kwargs)
-
-    @contextmanager
     def record(self, task_result: TaskResult, task, run_at):
-        self.create_or_insert(job_id=task_result.id, task=task, run_at=run_at)
+        self.update_or_create(
+            task=task, run_at=run_at, defaults={"job_id": task_result.id}
+        )
 
     def clear_in_batches(self, batch_size=500):
         while True:
