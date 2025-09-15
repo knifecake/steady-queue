@@ -42,4 +42,3 @@
 - [ ] Readme
 - [ ] Support for multiple databases
 - [ ] Publish to PyPI
-- [ ] Automatically disable enqueue on commit for recurring tasks
