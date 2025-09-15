@@ -441,7 +441,7 @@ future, on a regular basis like cron jobs. These are managed by the scheduler
 process and are defined using the `@recurring` decorator:
 
 ```python
-from steady_queue import recurring
+from steady_queue.recurring_task import recurring
 
 @recurring(schedule="0 12 * * *", key="rot the brains at noon")
 @task()

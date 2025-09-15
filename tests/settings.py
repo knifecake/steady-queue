@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "django.contrib.staticfiles",
     "steady_queue",
     "tests.dummy",
 ]
@@ -55,6 +56,10 @@ TASKS = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 ALLOWED_HOSTS = ["*"]
+
+ROOT_URLCONF = "tests.dummy.urls"
+
+STATIC_URL = "/static/"
 
 DEBUG = True
 

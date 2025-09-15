@@ -37,8 +37,9 @@
 - [ ] Django checks
 - [ ] Retry on database is locked
 - [ ] Django admin permissions
-- [ ] Signals: pre/post enqueue, pre/post perform
+- [ ] Signals on tasks: pre/post enqueue, pre/post perform
 - [ ] Contributing
 - [ ] Readme
 - [ ] Support for multiple databases
 - [ ] Publish to PyPI
+- [ ] Automatically disable enqueue on commit for recurring tasks

@@ -22,7 +22,7 @@ def recurring(
 
     Usage:
 
-        @recurring_task(schedule="*/1 * * * *", key="unique_task_key")
+        @recurring(schedule="*/1 * * * *", key="unique_task_key")
         @task()
         def my_recurring_task():
             print("This runs every minute")
@@ -48,10 +48,6 @@ def recurring(
             description=description,
         )
         configurations.append(configuration)
-        logger.info(
-            "configured recurring task: %(configuration)s",
-            {"configuration": configuration},
-        )
 
         return task
 
