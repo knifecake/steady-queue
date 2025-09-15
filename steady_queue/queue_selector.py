@@ -2,6 +2,7 @@ from functools import reduce
 from operator import or_
 
 from django.db.models import QuerySet
+
 from steady_queue.collections import compact, flat_map
 from steady_queue.models.pause import Pause
 
@@ -84,7 +85,7 @@ class QueueSelector:
 
     @property
     def paused_queues(self) -> list[str]:
-        return Pause.objects.values_list("queue_name", flat=True)
+        return list(Pause.objects.values_list("queue_name", flat=True))
 
     def in_raw_order(self, queues: list[str]) -> list[str]:
         if len(queues) == 1 or len(self.prefixes) == 0:
@@ -107,5 +108,6 @@ class QueueSelector:
         elif self.is_prefixed_name(raw_queue):
             prefix = raw_queue.replace("*", "")
             matches = [q for q in queues if q.startswith(prefix)]
-            [queues.remove(m) for m in matches]
+            for m in matches:
+                queues.remove(m)
             return matches

@@ -8,9 +8,9 @@ logger = logging.getLogger("steady_queue")
 
 
 def wait_until(timeout: timedelta, condition: Callable):
-    timeout = timeout.total_seconds()
-    if timeout > 0:
-        deadline = time.monotonic() + timeout
+    timeout_seconds: float = timeout.total_seconds()
+    if timeout_seconds > 0:
+        deadline = time.monotonic() + timeout_seconds
 
         while time.monotonic() < deadline and not condition():
             time.sleep(0.1)

@@ -1,3 +1,5 @@
+from typing import Self
+
 from django.db import models, transaction
 from django.utils import timezone
 
@@ -7,14 +9,14 @@ from .execution import Execution
 
 
 class ScheduledExecutionQuerySet(models.QuerySet):
-    def due(self) -> models.QuerySet["ScheduledExecution"]:
+    def due(self) -> Self:
         return self.filter(scheduled_at__lte=timezone.now())
 
-    def ordered(self) -> models.QuerySet["ScheduledExecution"]:
+    def in_order(self) -> Self:
         return self.order_by("scheduled_at", "priority", "job_id")
 
-    def next_batch(self, batch_size: int) -> models.QuerySet["ScheduledExecution"]:
-        return self.due().ordered()[:batch_size]
+    def next_batch(self, batch_size: int) -> Self:
+        return self.due().in_order()[:batch_size]
 
 
 class ScheduledExecution(Dispatching, Execution):

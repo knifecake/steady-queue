@@ -1,13 +1,18 @@
 import time
+from datetime import datetime, timedelta
+from typing import Optional
 
-import steady_queue
 from django.db import models
 from django.utils import timezone
+
+import steady_queue
 
 
 class ClearableQuerySet(models.QuerySet):
     def clearable(
-        self, finished_before: timezone.datetime = None, class_name: str = None
+        self,
+        finished_before: Optional[datetime] = None,
+        class_name: Optional[str] = None,
     ):
         if finished_before is None:
             finished_before = timezone.now() - steady_queue.clear_finished_jobs_after
@@ -24,12 +29,12 @@ class ClearableQuerySet(models.QuerySet):
     def clear_finished_in_batches(
         self,
         batch_size: int = 500,
-        finished_before: timezone.datetime = None,
-        class_name: str = None,
-        sleep_between_batches: timezone.timedelta = None,
+        finished_before: Optional[datetime] = None,
+        class_name: Optional[str] = None,
+        sleep_between_batches: Optional[timedelta] = None,
     ):
         if sleep_between_batches is None:
-            sleep_between_batches = timezone.timedelta(seconds=0)
+            sleep_between_batches = timedelta(seconds=0)
 
         while True:
             deleted = self.clearable(finished_before, class_name)[:batch_size].delete()

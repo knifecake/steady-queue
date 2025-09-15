@@ -36,7 +36,7 @@ jobs:
 
       - name: Run mypy
         run: |
-          uv run mypy -p robust_queue
+          uv run mypy -p steady_queue
         continue-on-error: true
 
       - name: Run tests
@@ -45,4 +45,4 @@ jobs:
 
       - name: Report coverage
         run: |
-          uv run coverage report --show-missing --skip-covered --include 'robust_queue/**'
+          uv run coverage report --show-missing --skip-covered --include 'steady_queue/**'

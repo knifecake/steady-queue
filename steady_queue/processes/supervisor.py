@@ -3,7 +3,7 @@ import os
 import signal
 import sys
 from datetime import timedelta
-from typing import Optional, Self
+from typing import Optional
 
 import steady_queue
 from steady_queue.configuration import Configuration
@@ -23,7 +23,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
     @classmethod
     def launch(
         cls, options: Optional[Configuration.ConfigurationOptions] = None
-    ) -> Self:
+    ) -> None:
         configuration = Configuration(options)
         if not configuration.is_valid:
             raise ValueError("Invalid configuration")

@@ -7,7 +7,6 @@ from typing import Any
 class Base:
     name: str
     stopped: bool = False
-    pid: int
 
     def __init__(self):
         self.name = self.generate_name()

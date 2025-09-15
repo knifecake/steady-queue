@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, Self
 
 from django.db import models
@@ -54,7 +55,7 @@ class Job(Executable, UpdatedAtMixin, BaseModel):
 
     @classmethod
     def enqueue(
-        cls, task: SteadyQueueTask, scheduled_at: Optional[timezone.datetime] = None
+        cls, task: SteadyQueueTask, scheduled_at: Optional[datetime] = None
     ) -> Self:
         if scheduled_at is None:
             scheduled_at = timezone.now()

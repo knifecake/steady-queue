@@ -115,7 +115,7 @@ class ProcessAdmin(ReadOnlyAdminMixin, BaseAdmin):
         return naturaltime(obj.last_heartbeat_at)
 
     @admin.display(description="Running tasks", ordering="job_count")
-    def job_count(self, obj: Process) -> int:
+    def job_count(self, obj: Process) -> Optional[int]:
         if obj.kind != "worker":
             return None
 

@@ -44,5 +44,5 @@ class Pidfile:
 
     def already_running(self):
         raise RuntimeError(
-            f"A robust queue supervisor is already running. Check {self.path}"
+            f"A Steady Queue supervisor is already running. Check {self.path}"
         )

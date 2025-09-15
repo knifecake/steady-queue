@@ -10,6 +10,7 @@ logger = logging.getLogger("steady_queue")
 
 
 class Registrable(Base):
+    supervisor: Optional[Process] = None
     process: Optional[Process] = None
 
     def boot(self):
@@ -28,7 +29,7 @@ class Registrable(Base):
             name=self.name,
             pid=self.pid,
             hostname=self.hostname,
-            supervisor=getattr(self, "supervisor", None),
+            supervisor=self.supervisor,
             metadata=self.metadata,
         )
         logger.debug(

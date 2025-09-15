@@ -1,10 +1,12 @@
+from typing import Self
+
 from django.db import models, transaction
 
 from .base import BaseModel
 
 
 class ExecutionQuerySet(models.QuerySet):
-    def ordered(self):
+    def in_order(self) -> Self:
         return self.order_by("priority", "job_id")
 
     def discard_in_batches(self, batch_size: int = 500) -> int:

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+CONTAINER_NAME="steady-postgres"
+
+if docker ps --format "table {{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
+    echo "Container $CONTAINER_NAME is already running"
+    exit 0
+fi
+
+echo "Starting container $CONTAINER_NAME"
+docker run --detach \
+ --name "$CONTAINER_NAME" \
+ --publish 5432:5432 \
+ --env POSTGRES_DB=steady_queue \
+ --env POSTGRES_USER=steady_queue \
+ --env POSTGRES_PASSWORD=steady_queue \
+ postgres:17.4-alpine

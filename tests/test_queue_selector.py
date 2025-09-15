@@ -1,5 +1,6 @@
 from django.db.models import QuerySet
 from django.test import TestCase
+
 from steady_queue.models.job import Job
 from steady_queue.models.ready_execution import ReadyExecution
 from steady_queue.queue_selector import QueueSelector

@@ -30,8 +30,8 @@
 - [ ] Concurrency controls
 - [ ] Lifecycle hooks on processes
 - [ ] Tests
-- [ ] Test using PostgreSQL
-- [ ] Remove demo app in favor of test dummy
+- [x] Test using PostgreSQL
+- [x] Remove demo app in favor of test dummy
 - [ ] Class-based tasks
 - [ ] Django checks
 - [ ] Retry on database is locked

@@ -1,5 +1,3 @@
-from typing import Iterator
-
 from django.db import models, transaction
 
 from steady_queue.models.claimed_execution import ClaimedExecution
@@ -18,12 +16,12 @@ class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
         ]
         return self.bulk_create(jobs)  # TODO: conflicts?
 
-    def claim(self, queue_list, limit, process_id) -> Iterator[ClaimedExecution]:
+    def claim(self, queue_list, limit, process_id) -> list[ClaimedExecution]:
         scoped_relations = QueueSelector(
             queue_list, self.model.objects
         ).scoped_relations()
 
-        claimed = []
+        claimed: list[ClaimedExecution] = []
         for relation in scoped_relations:
             locked = relation.select_and_lock(process_id, limit)
             limit -= len(locked)
@@ -42,7 +40,7 @@ class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
 
     def select_candidates(self, limit):
         return (
-            self.ordered()
+            self.in_order()
             .select_for_update(skip_locked=True)
             .only("id", "job_id")[:limit]
         )

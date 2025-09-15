@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import Optional
 
@@ -8,7 +8,7 @@ from steady_queue.processes.base import Base
 class Configuration:
     @dataclass
     class WorkerConfiguration:
-        queues: str | list[str] = "*"
+        queues: list[str] = field(default_factory=lambda: ["*"])
         threads: int = 3
         processes: int = 1
         polling_interval: timedelta = timedelta(seconds=1)

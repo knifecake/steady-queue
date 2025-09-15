@@ -221,7 +221,7 @@ the other, as that will make task execution order more straightforward for you.
 
 ### Queues specification and performance
 
-To keep polling performant and ensure a covering index is always used, Robust
+To keep polling performant and ensure a covering index is always used, Steady
 Queue only does two types of polling queries:
 
 ```sql
@@ -354,7 +354,7 @@ import steady_queue
 steady_queue.process_heartbeat_interval = timedelta(minutes=5)
 ```
 
-There are several settings that control how RObust Queue works that you can set as well:
+There are several settings that control how Steady Queue works that you can set as well:
 
 - `process_heartbeat_interval`:  the heartbeat interval that all processes will
   follow—defaults to 60 seconds.

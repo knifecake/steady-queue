@@ -1,4 +1,5 @@
 from django.db import models
+
 from steady_queue.models.pause import Pause
 from steady_queue.models.ready_execution import ReadyExecution
 
@@ -35,22 +36,22 @@ class Queue(models.Model):
     )
 
     @property
-    def pending_jobs(self):
+    def pending_jobs(self) -> int:
         return ReadyExecution.objects.queued_as(self.queue_name).count()
 
     @property
-    def is_paused(self):
+    def is_paused(self) -> bool:
         return Pause.objects.filter(queue_name=self.queue_name).exists()
 
     @property
-    def is_running(self):
+    def is_running(self) -> bool:
         return not self.is_paused
 
-    def pause(self):
+    def pause(self) -> None:
         Pause.objects.get_or_create(queue_name=self.queue_name)
 
-    def resume(self):
+    def resume(self) -> None:
         Pause.objects.filter(queue_name=self.queue_name).delete()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.queue_name

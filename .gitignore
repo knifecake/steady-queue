@@ -17,3 +17,4 @@ wheels/
 
 # temporary files
 tmp/
+.mypy_cache/
