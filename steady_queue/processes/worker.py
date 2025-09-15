@@ -32,7 +32,7 @@ class Worker(Poller):
         claimed_executions = self.claim_executions()
         for execution in claimed_executions:
             logger.info(
-                "%(worker)s claimed job %(job_id)s %(task_name)s",
+                "%(worker)s claimed job %(job_id)s %(class_name)s",
                 {
                     "worker": self.name,
                     "job_id": execution.job_id,
