@@ -29,7 +29,13 @@ def recurring(
     """
 
     def wrapper(task: SteadyQueueTask):
-        class_name = task.module_path
+        try:
+            class_name = task.module_path
+        except AttributeError:
+            raise ValueError(
+                "The given task does not look to be a Django task. Did you forget to decorate it with @task()?"
+            )
+
         task.args = args
         task.kwargs = kwargs
         configuration = Configuration.RecurringTaskConfiguration(

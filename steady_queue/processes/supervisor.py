@@ -90,6 +90,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
         logger.info(
             "Parent process %d forked child %d for %s", os.getpid(), pid, process.kind
         )
+        self.reset_database_connections()
         self.configured_processes[pid] = process
         self.forks[pid] = instance
 

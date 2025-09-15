@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 from typing import Any
 
+from steady_queue.app_executor import AppExecutor
 from steady_queue.processes.base import Base
 from steady_queue.processes.interruptible import Interruptible
 from steady_queue.processes.registrable import Registrable
@@ -38,7 +39,9 @@ class Poller(Runnable, Interruptible, Registrable, Base):
                 if self.is_shutting_down:
                     break
 
-                delay = self.poll()
+                with AppExecutor.wrap_in_app_executor():
+                    delay = self.poll()
+
                 self.interruptible_sleep(delay)
         finally:
             self.shutdown()

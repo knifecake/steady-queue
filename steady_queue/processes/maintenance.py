@@ -1,6 +1,7 @@
 import logging
 
 import steady_queue
+from steady_queue.app_executor import AppExecutor
 from steady_queue.models.claimed_execution import ClaimedExecution
 from steady_queue.models.process import Process
 from steady_queue.processes.errors import ProcessMissingError
@@ -23,8 +24,10 @@ class Maintenance:
         self.maintenance_task.stop()
 
     def fail_orphaned_executions(self):
-        ClaimedExecution.objects.orphaned().fail_all_with(ProcessMissingError())
+        with AppExecutor.wrap_in_app_executor():
+            ClaimedExecution.objects.orphaned().fail_all_with(ProcessMissingError())
 
     def prune_dead_processes(self):
         logger.debug("pruning dead processes")
-        Process.objects.exclude(pk=self.process.pk).prune()
+        with AppExecutor.wrap_in_app_executor():
+            Process.objects.exclude(pk=self.process.pk).prune()

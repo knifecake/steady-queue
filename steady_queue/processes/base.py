@@ -3,6 +3,8 @@ import secrets
 import socket
 from typing import Any
 
+from django.db import connections
+
 
 class Base:
     name: str
@@ -43,3 +45,6 @@ class Base:
 
     def generate_name(self) -> str:
         return "-".join((self.kind, secrets.token_hex(10)))
+
+    def reset_database_connections(self):
+        connections.close_all()

@@ -41,7 +41,7 @@ class Signals:
         if sig in (signal.SIGTERM, signal.SIGINT):
             self.stop()
             self.terminate_gracefully()
-        elif sig == self.SIGQUIT:
+        elif sig == signal.SIGQUIT:
             self.stop()
             self.terminate_immediately()
         else:

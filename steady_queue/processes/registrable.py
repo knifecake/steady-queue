@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 
 import steady_queue
+from steady_queue.app_executor import AppExecutor
 from steady_queue.models import Process
 from steady_queue.processes.base import Base
 from steady_queue.processes.timer import TimerTask
@@ -67,12 +68,13 @@ class Registrable(Base):
         logger.debug("stopped heartbeat for %s", self.name)
 
     def heartbeat(self):
-        try:
-            logger.debug("heartbeat from %s", self.name)
-            self.process.heartbeat()
-        except Process.DoesNotExist:
-            self.process = None
-            self.wake_up()
+        with AppExecutor.wrap_in_app_executor():
+            try:
+                logger.debug("heartbeat from %s", self.name)
+                self.process.heartbeat()
+            except Process.DoesNotExist:
+                self.process = None
+                self.wake_up()
 
     @property
     def process_id(self):

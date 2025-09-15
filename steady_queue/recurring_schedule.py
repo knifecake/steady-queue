@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from threading import Timer
 
+from steady_queue.app_executor import AppExecutor
 from steady_queue.configuration import Configuration
 from steady_queue.models.recurring_task import RecurringTask
 from steady_queue.processes.concurrent import Dict
@@ -22,8 +23,9 @@ class RecurringSchedule:
         return len(self.configured_tasks) == 0
 
     def schedule_tasks(self):
-        self.persist_tasks()
-        self.reload_tasks()
+        with AppExecutor.wrap_in_app_executor():
+            self.persist_tasks()
+            self.reload_tasks()
 
         for t in self.configured_tasks:
             self.schedule_task(t)
@@ -59,7 +61,9 @@ class RecurringSchedule:
             recurring_schedule.schedule_task(task)
 
             # enqueue the current one
-            task.enqueue(run_at=run_at)
+            with AppExecutor.wrap_in_app_executor():
+                task.enqueue(run_at=run_at)
+
             logger.debug("enqueued current execution for %s", task.key)
 
         scheduled_task = Timer(

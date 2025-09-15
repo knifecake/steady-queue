@@ -1,7 +1,6 @@
 import logging
 import os
 
-from django.db import connections
 from steady_queue.processes.supervised import Supervised
 
 logger = logging.getLogger("steady_queue")
@@ -56,9 +55,6 @@ class Runnable(Supervised):
 
     def set_procline(self):
         pass
-
-    def reset_database_connections(self):
-        connections.close_all()
 
     @property
     def is_running_inline(self) -> bool:

@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from typing import Callable
 
+from steady_queue.app_executor import AppExecutor
 from steady_queue.models.claimed_execution import ClaimedExecution
 from steady_queue.processes.concurrent import AtomicInteger
 
@@ -24,7 +25,8 @@ class Pool:
 
         def wrapped_execution():
             try:
-                execution.perform()
+                with AppExecutor.wrap_in_app_executor():
+                    execution.perform()
             finally:
                 self.available_threads.increment()
                 with self.mutex:

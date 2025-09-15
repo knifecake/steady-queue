@@ -1,6 +1,9 @@
 import os
+from datetime import timedelta
 
 import environ
+
+from steady_queue.configuration import Configuration
 
 env = environ.Env()
 
@@ -15,7 +18,6 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "django.contrib.staticfiles",
     "steady_queue",
     "tests.dummy",
 ]
@@ -31,7 +33,10 @@ MIDDLEWARE = [
 ]
 
 DATABASES = {
-    "default": env.db("DB_URL", default="sqlite:///tests/tmp/db.sqlite3"),
+    "default": env.db(
+        "DB_URL",
+        default="postgres://steady_queue:steady_queue@localhost:5432/steady_queue",
+    ),
 }
 
 
@@ -45,6 +50,10 @@ TASKS = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+ALLOWED_HOSTS = ["*"]
+
+DEBUG = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/dev/topics/i18n/
@@ -72,3 +81,20 @@ TEMPLATES = [
         },
     },
 ]
+
+
+STEADY_QUEUE = Configuration.ConfigurationOptions(
+    dispatchers=[
+        Configuration.DispatcherConfiguration(
+            polling_interval=timedelta(seconds=1), batch_size=500
+        )
+    ],
+    workers=[
+        Configuration.WorkerConfiguration(
+            queues=["*"],
+            threads=2,
+            polling_interval=timedelta(seconds=0.1),
+            processes=2,
+        )
+    ],
+)
