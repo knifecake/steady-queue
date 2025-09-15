@@ -39,6 +39,10 @@ DATABASES = {
     ),
 }
 
+if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
+    print("Enabling connection pooling")
+    DATABASES["default"]["OPTIONS"] = {"pool": {"min_size": 2, "max_size": 4}}
+
 
 # Tasks
 TASKS = {
