@@ -37,7 +37,7 @@ class Process(Executor, Prunable, BaseModel):
         related_name="supervisees",
     )
 
-    pid = models.PositiveSmallIntegerField(verbose_name="pid")
+    pid = models.PositiveIntegerField(verbose_name="pid")
     hostname = models.CharField(
         max_length=1024, null=True, blank=True, verbose_name="hostname"
     )

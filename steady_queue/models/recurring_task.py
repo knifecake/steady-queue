@@ -53,7 +53,7 @@ class RecurringTask(UpdatedAtMixin, BaseModel):
     queue_name = models.CharField(
         max_length=255, verbose_name="queue name", null=True, blank=True
     )
-    priority = models.PositiveSmallIntegerField(verbose_name="priority", default=0)
+    priority = models.IntegerField(verbose_name="priority", default=0)
     static = models.BooleanField(verbose_name="static", default=False)
     description = models.TextField(verbose_name="description", blank=True, null=True)
 

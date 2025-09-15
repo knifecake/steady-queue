@@ -216,7 +216,7 @@ class Migration(migrations.Migration):
                     "last_heartbeat_at",
                     models.DateTimeField(verbose_name="last heartbeat at"),
                 ),
-                ("pid", models.PositiveSmallIntegerField(verbose_name="pid")),
+                ("pid", models.PositiveIntegerField(verbose_name="pid")),
                 (
                     "hostname",
                     models.CharField(
@@ -382,9 +382,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "priority",
-                    models.PositiveSmallIntegerField(
-                        default=0, verbose_name="priority"
-                    ),
+                    models.IntegerField(default=0, verbose_name="priority"),
                 ),
                 ("static", models.BooleanField(default=False, verbose_name="static")),
                 (
