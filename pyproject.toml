@@ -6,11 +6,13 @@ readme = "README.md"
 authors = [
     { name = "Elias Hernandis", email = "elias@hernandis.me" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 keywords = ["django", "tasks", "async", "jobs", "queues"]
 classifiers = [
     "Framework :: Django",
     "Framework :: Django :: 5.2",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "License :: OSI Approved :: MIT License",
