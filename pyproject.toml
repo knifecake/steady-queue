@@ -1,20 +1,33 @@
 [project]
 name = "steady-queue"
-version = "0.1.0"
-description = "Add your description here"
+dynamic = ["version"]
+description = "An asynchronous task library for Django that supports delayed tasks, concurrency controls, recurring tasks, pausing queues, numeric priorities per task, priorities by queue order and bulk enqueueing."
 readme = "README.md"
 authors = [
     { name = "Elias Hernandis", email = "elias@hernandis.me" }
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.13"
+keywords = ["django", "tasks", "async", "jobs", "queues"]
+classifiers = [
+    "Framework :: Django",
+    "Framework :: Django :: 5.2",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+]
 dependencies = [
     "crontab>=1.0.5",
-    "django>=5.2",
-    "django-tasks>=0.8.1",
+    "django>=5.2,<6",
+    "django-tasks>=0.8.1,<0.9.0",
 ]
 
-[project.scripts]
-steady-queue = "steady_queue:main"
+[project.urls]
+Homepage = "https://github.com/knifecake/steady-queue"
+Source = "https://github.com/knifecake/steady-queue"
+Documentation = "https://steady-queue.readthedocs.io/en/latest/"
+Tracker = "https://github.com/knifecake/steady-queue/issues"
+Releases = "https://github.com/knifecake/steady-queue/releases"
 
 [tool.ruff]
 line-length = 88
@@ -27,6 +40,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["steady_queue*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "steady_queue.__version__"}
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]

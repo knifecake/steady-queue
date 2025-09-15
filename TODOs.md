@@ -26,12 +26,13 @@
 - [x] Pidfiles
 - [x] Reorganize code
 - [x] Rename to Steady Queue
+- [x] Test using PostgreSQL
+- [x] Remove demo app in favor of test dummy
+- [x] Configure package builds
 - [ ] Review logging noisiness
 - [ ] Concurrency controls
 - [ ] Lifecycle hooks on processes
 - [ ] Tests
-- [x] Test using PostgreSQL
-- [x] Remove demo app in favor of test dummy
 - [ ] Class-based tasks
 - [ ] Django checks
 - [ ] Retry on database is locked
@@ -40,3 +41,4 @@
 - [ ] Contributing
 - [ ] Readme
 - [ ] Support for multiple databases
+- [ ] Publish to PyPI

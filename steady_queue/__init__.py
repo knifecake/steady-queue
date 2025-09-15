@@ -1,6 +1,10 @@
 from datetime import timedelta
 from typing import Optional
 
+VERSION = (0, 1, "0-beta1")
+
+__version__ = ".".join(map(str, VERSION))
+
 process_heartbeat_interval: timedelta = timedelta(minutes=1)
 
 process_alive_threshold: timedelta = timedelta(minutes=5)
