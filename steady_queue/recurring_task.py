@@ -38,7 +38,7 @@ def recurring(
 
         task.args = args
         task.kwargs = kwargs
-        configuration = Configuration.RecurringTaskConfiguration(
+        configuration = Configuration.RecurringTask(
             key=key,
             class_name=class_name,
             schedule=schedule,

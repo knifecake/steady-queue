@@ -129,15 +129,15 @@ Steady Queue will try to find our configuration under the `STEADY_QUEUE` variabl
 from steady_queue.configuration import Configuration
 from datetime import timedelta
 
-STEADY_QUEUE = Configuration.ConfigurationOptions(
+STEADY_QUEUE = Configuration.Options(
     dispatchers=[
-        Configuration.DispatcherConfiguration(
+        Configuration.Dispatcher(
             polling_interval=timedelta(seconds=1),
             batch_size=500
         )
     ],
     workers=[
-        Configuration.WorkerConfiguration(
+        Configuration.Worker(
             queues=["*"],
             threads=3,
             polling_interval=timedelta(seconds=0.1)
