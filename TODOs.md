@@ -31,6 +31,7 @@
 - [x] Configure package builds
 - [x] Review logging noisiness
 - [x] Cleanup configuration
+- [x] Timer tasks that run immediately
 - [ ] Support for multiple databases
 - [ ] Concurrency controls
 - [ ] Lifecycle hooks on processes

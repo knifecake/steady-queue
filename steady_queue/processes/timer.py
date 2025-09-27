@@ -27,9 +27,15 @@ class TimerTask:
     isolation as possible, inspired by Ruby's Concurrent::TimerTask.
     """
 
-    def __init__(self, interval: timedelta, callable: Callable):
+    def __init__(
+        self,
+        interval: timedelta,
+        callable: Callable,
+        run_now: bool = False,
+    ):
         self.interval = interval
         self.callable = callable
+        self.run_now = run_now
         self._stop_event = threading.Event()
 
     def start(self):
@@ -49,6 +55,9 @@ class TimerTask:
         logger.debug("timer task stopped")
 
     def run(self):
+        if self.run_now:
+            self.perform_task()
+
         while not self._stop_event.is_set():
             # Use Event.wait() for efficient interruptible sleep
             logger.debug("timer task waiting for %s", self.interval)
@@ -56,14 +65,16 @@ class TimerTask:
                 # Event was set (stop was called), break out of loop
                 break
 
-            # Run the callable in a separate thread to isolate crashes
-            work_thread = threading.Thread(target=self.wrapped_callable)
-            work_thread.start()
-            work_thread.join()
+            self.perform_task()
+
+    def perform_task(self):
+        # Run the callable in a separate thread to isolate crashes
+        work_thread = threading.Thread(target=self.wrapped_callable)
+        work_thread.start()
+        work_thread.join()
 
     def wrapped_callable(self):
         try:
-            time.sleep(10)
             self.callable()
         except Exception as e:
             logger.exception(
