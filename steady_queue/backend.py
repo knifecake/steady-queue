@@ -27,7 +27,7 @@ class SteadyQueueBackend(BaseTaskBackend):
 
         task.args = args
         task.kwargs = kwargs
-        job = Job.enqueue(task, scheduled_at=task.run_after)
+        job = Job.objects.enqueue(task, scheduled_at=task.run_after)
         return self._to_task_result(task, job)
 
     def get_result(self, result_id: str) -> TaskResult:

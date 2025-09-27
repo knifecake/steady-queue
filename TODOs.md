@@ -32,8 +32,8 @@
 - [x] Review logging noisiness
 - [x] Cleanup configuration
 - [x] Timer tasks that run immediately
+- [x] Concurrency controls
 - [ ] Support for multiple databases
-- [ ] Concurrency controls
 - [ ] Lifecycle hooks on processes
 - [ ] Tests
 - [ ] Class-based tasks

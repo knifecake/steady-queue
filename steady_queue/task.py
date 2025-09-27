@@ -18,6 +18,11 @@ class SteadyQueueTask(Task[P, T]):
     args: P.args
     kwargs: P.kwargs
 
+    concurrency_key: Optional[str] = None
+    concurrency_limit: Optional[int] = None
+    concurrency_duration: Optional[timezone.timedelta] = None
+    concurrency_group: Optional[str] = None
+
     def __post_init__(self):
         super().__post_init__()
         self.arguments = {}

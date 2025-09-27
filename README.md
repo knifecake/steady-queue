@@ -155,19 +155,19 @@ Here's an overview of the different options:
 - `batch_size`: the dispatcher will dispatch tasks in batches of this size. The default is 500.
 
 - `concurrency_maintenance_interval`: the time interval in seconds that the
-  dispatcher will wait before checking for blocked jobs that can be unblocked.
+  dispatcher will wait before checking for blocked tasks that can be unblocked.
   Read more about [concurrency controls](#concurrency-controls) to learn more
   about this setting. It defaults to `600` seconds.
 
 - `queues`: the list of queues that workers will pick tasks from. You can use
   `*` to indicate all queues (which is also the default and the behavior you'll
   get if you omit this). Tasks will be polled from those queues in order, so for
-  example, with `['real_time', 'background']`, no jobs will be taken from
-  `background` unless there aren't any more jobs waiting in `real_time`.
+  example, with `['real_time', 'background']`, no tasks will be taken from
+  `background` unless there aren't any more tasks waiting in `real_time`.
 
   You can also provide a prefix with a wildcard to match queues starting with a
   prefix. For example adding `staging*` to the queues list will create a worker
-  fetching jobs from all queues starting with `staging`. The wildcard `*` is
+  fetching tasks from all queues starting with `staging`. The wildcard `*` is
   only allowed on it's own or at the end of a queue name; you can't specify
   queue names such as `*_some_queue`. These will be ignored.
 
@@ -388,9 +388,137 @@ TODO
 
 ## Concurrency controls
 
-TODO
+Steady Queue extends Django Tasks with concurrency controls, that allows you to limit how many tasks of a certain type or with certain arguments can run at the same time. When limited in this way, tasks will be blocked from running, and they'll stay blocked until another task finishes and unblocks them, or after the set expiry time (concurrency limit's _duration_) elapses. Tasks are never discarded or lost, just blocked.
 
-## Failed jobs and retries
+
+```python
+from django_tasks import task
+
+from steady_queue.concurrency import limits_concurrency
+
+@limits_concurrency(
+    key=lambda arg1, arg2, **kwargs: pass,
+    to=max_concurrent_executions,
+    duration=max_timedelta_to_guarantee_concurrency_limit,
+    group=concurrency_group
+)
+@task()
+def my_task(arg1, arg2, **kwargs):
+    pass
+```
+
+- `key` is the only required parameter, and it can be a string or a callable
+  that receives the same arguments as the task and returns a string. It will be
+  used to identify the tasks that need to be limited together.
+- `to` is `1` by default.
+- `duration` is set to `steady_queue.default_concurrency_control_period` by
+  default, which itself defaults to `3 minutes`.
+- `group` is used to control the concurrency of different tasks types together.
+  It defaults to the task's module path.
+
+When a task includes these controls, we'll ensure that, at most, the number of
+tasks (indicated as `to`) that yield the same `key` will be performed
+concurrently, and this guarantee will last for `duration` for each task
+enqueued. Note that there is no guarantee about _the order of execution_, only
+about tasks being performed at the same time (overlapping).
+
+The concurrency limits use the concept of semaphores when enqueueing, and work
+as follows: when a task is enqueued, we check if it specifies concurrency
+controls. If it does, we check the semaphore for the computed concurrency key.
+If the semaphore is open, we claim it and we set the task as _ready_. Ready
+means it can be picked up by workers for execution. When the task finishes
+execution (be it successfully or unsuccessfully, resulting in a failed
+execution), we signal the semaphore and try to unblock the next task with the
+same key, if any. Unblocking the next task doesn't mean running that task right
+away, but moving it from _blocked_ to _ready_. Since something can heppen that
+prevents the first task from releasing the semaphore and unblocking the next
+task (for example, someone pulling a plug in the machine where the worker is
+running), we have the `duration` as a failsafe. Tasks that have been blocked for
+more than duration are candidates to be released, but only as many of them as
+the concurrency rules allow, as each one would need to go through the semaphore
+dance check. This means that the `duration` is not really about the task that's
+enqueued or being run, it's about the tasks that are blocked waiting. It's
+important to note that after one or more candidate tasks are unblocked (either
+because a task finishes or because `duration` expires and a semaphore is
+released), the `duration` timer for the still blocked tasks is reset. This
+happens indirectly via the expiration time of the semaphore, which is updated.
+
+For example
+
+
+```python
+@limits_concurrency(
+    to=2,
+    key=lambda contact: contact.account_id,
+    duration=timedelta(minutes=5)
+)
+@task()
+def deliver_announcement(contact):
+    pass
+```
+
+In this case, we'll ensure that at most two tasks of the kind
+`deliver_announcement` for the same account will run concurrently. If, for any
+reason, one of those tasks takes longer than 5 minutes or doesn't release its
+concurrency lock (signals the semaphore) within 5 minutes of acquiring it, a new
+task with the same key might gain the lock.
+
+Let's see another example using `group`:
+
+```python
+@limits_concurrency(
+    key=lambda contact: contact.pk,
+    duration=timedelta(minutes=15),
+    group='contact_tasks'
+)
+@task()
+def contact_action(contact):
+    pass
+```
+
+
+```python
+@limits_concurrency(
+    key=lambda bundle: bundle.contact_id,
+    duration=timedelta(minutes=15),
+    group='contact_tasks'
+)
+@task()
+def bundle_action(bundle):
+    pass
+```
+
+In this case, if we have a `contact_action` task enqueued for a contact record
+with id `123` and another `bundle_action` task enqueued simultaneously for a
+bundle record that references contact `123`, only one of them will be allowed to
+proceed. The other one will stay blocked until the first one finishes (or 15
+minutes pass, whatever happens first).
+
+Note that the `duration` setting depends indirectly on the value for
+`concurrency_maintenance_interval` that you set for your dispatcher(s), as
+that'd be the frequency with which blocked tasks are checked and unblocked (at
+which point, only one task per concurrency key, at most, is unblocked). In
+general, you should set `duration` in a way that all your tasks would finish
+well under that duration and think of the concurrency maintenance task as a
+failsafe in case something goes wrong.
+
+Tasks are unblocked in order of priority but queue order is not taken into
+account for unblocking tasks. That means that if you have a group of tasks that
+share a concurrency group but are in different queues, or tasks of the same
+class that you enqueue in different queues, the queue order you set for a worker
+is not taken into account when unblocking blocked ones. The reason is that a
+task that runs unblocks the next one, and the task itself doesn't know about a
+particular worker's queue order (you could even have different workers with
+different queue orders), it can only know about priority. Once blocked tasks are
+unblocked and available for polling, they'll be picked up by a worker following
+its queue order.
+
+Finally, failed tasks that are automatically or manually retried work in the
+same way as new tasks that get enqueued: they get in the queue for getting an
+open semaphore, and whenever they get it, they'll be run. It doesn't matter if
+they had already gotten an open semaphore in the past.
+
+## Failed tasks and retries
 
 TODO
 
@@ -492,7 +620,7 @@ It is possible to run multiple schedulers, for example, if you have multiple
 servers for redundancy and your run the `scheduler` in more than one of them. To
 avoid enqueueing duplicate tasks at the same time, an entry in the
 `steady_queue_recurringexecution` table is added in the same transaction as the
-job is enqueued. This table has a unique index on `task_key` and `run_at`,
+task is enqueued. This table has a unique index on `task_key` and `run_at`,
 ensuring only one entry per task per time will be created. This only works if
 you have `preserve_finished_tasks` set to `True` (the default), and the
 guarantee applies as long as you keep tasks around.
