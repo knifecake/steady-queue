@@ -74,7 +74,4 @@ class TestQueueSelector(TestCase):
         job = Job.objects.create(
             queue_name=queue_name, class_name="test.dummy", arguments={}
         )
-        return ReadyExecution.objects.create(
-            job=job,
-            **ReadyExecution.attributes_from_job(job),
-        )
+        return job.ready_execution
