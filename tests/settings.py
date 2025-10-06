@@ -91,14 +91,12 @@ TEMPLATES = [
 ]
 
 
-STEADY_QUEUE = Configuration.ConfigurationOptions(
+STEADY_QUEUE = Configuration.Options(
     dispatchers=[
-        Configuration.DispatcherConfiguration(
-            polling_interval=timedelta(seconds=1), batch_size=500
-        )
+        Configuration.Dispatcher(polling_interval=timedelta(seconds=1), batch_size=500)
     ],
     workers=[
-        Configuration.WorkerConfiguration(
+        Configuration.Worker(
             queues=["*"],
             threads=2,
             polling_interval=timedelta(seconds=0.1),

@@ -14,4 +14,5 @@ lint:
 
 .PHONY: force-kill
 force-kill:
-	ps | grep steady_queue | cut -f 1  -d ' '  | xargs kill -9 && rm -f tmp/pids/steady_queue_supervisor.pid
+	ps | grep steady_queue | cut -f 1  -d ' '  | xargs kill -9
+	rm -f tmp/pids/steady_queue_supervisor.pid

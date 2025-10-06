@@ -2,7 +2,6 @@ from django_tasks import ResultStatus, Task, TaskResult
 from django_tasks.backends.base import BaseTaskBackend
 from django_tasks.task import P, T
 
-from steady_queue.models import Job
 from steady_queue.task import SteadyQueueTask
 
 
@@ -22,6 +21,8 @@ class SteadyQueueBackend(BaseTaskBackend):
     def enqueue(
         self, task: Task[P, T], args: P.args, kwargs: P.kwargs
     ) -> TaskResult[T]:
+        from steady_queue.models import Job
+
         if not isinstance(task, SteadyQueueTask):
             raise ValueError("Steady Queue only supports SteadyQueueTasks")
 
@@ -35,7 +36,7 @@ class SteadyQueueBackend(BaseTaskBackend):
             "This backend does not support retrieving or refreshing results."
         )
 
-    def _to_task_result(self, task: SteadyQueueTask, job: Job) -> TaskResult:
+    def _to_task_result(self, task: SteadyQueueTask, job) -> TaskResult:
         return TaskResult(
             task=task,
             id=str(job.id),

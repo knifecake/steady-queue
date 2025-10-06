@@ -19,7 +19,7 @@ class Scheduler(Runnable, Interruptible, Registrable, Base):
     def __init__(
         self,
         recurring_tasks: Optional[
-            list[RecurringTask | Configuration.RecurringTaskConfiguration]
+            list[RecurringTask | Configuration.RecurringTask]
         ] = None,
         **kwargs,
     ):

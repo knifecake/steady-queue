@@ -14,7 +14,7 @@ logger = logging.getLogger("steady_queue")
 class Worker(Poller):
     pool: Pool
 
-    def __init__(self, options: Configuration.WorkerConfiguration):
+    def __init__(self, options: Configuration.Worker):
         self.queues = options.queues
         self.pool = Pool(options.threads, on_idle=lambda: self.wake_up())
 

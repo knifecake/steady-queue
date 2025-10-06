@@ -21,9 +21,7 @@ logger = logging.getLogger("steady_queue")
 
 class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Base):
     @classmethod
-    def launch(
-        cls, options: Optional[Configuration.ConfigurationOptions] = None
-    ) -> None:
+    def launch(cls, options: Optional[Configuration.Options] = None) -> None:
         configuration = Configuration(options)
         if not configuration.is_valid:
             raise ValueError("Invalid configuration")

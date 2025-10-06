@@ -64,7 +64,7 @@ class RecurringTask(UpdatedAtMixin, BaseModel):
         return cls.from_configuration(self_or_config)
 
     @classmethod
-    def from_configuration(cls, config: Configuration.RecurringTaskConfiguration):
+    def from_configuration(cls, config: Configuration.RecurringTask):
         return cls(
             key=config.key,
             static=True,

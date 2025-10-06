@@ -30,7 +30,10 @@
 - [x] Remove demo app in favor of test dummy
 - [x] Configure package builds
 - [x] Review logging noisiness
-- [ ] Concurrency controls
+- [x] Cleanup configuration
+- [x] Timer tasks that run immediately
+- [x] Concurrency controls
+- [ ] Support for multiple databases
 - [ ] Lifecycle hooks on processes
 - [ ] Tests
 - [ ] Class-based tasks
@@ -40,5 +43,4 @@
 - [ ] Signals on tasks: pre/post enqueue, pre/post perform
 - [ ] Contributing
 - [ ] Readme
-- [ ] Support for multiple databases
 - [ ] Publish to PyPI

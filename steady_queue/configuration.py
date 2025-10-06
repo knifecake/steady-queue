@@ -7,21 +7,21 @@ from steady_queue.processes.base import Base
 
 class Configuration:
     @dataclass
-    class WorkerConfiguration:
+    class Worker:
         queues: list[str] = field(default_factory=lambda: ["*"])
         threads: int = 3
         processes: int = 1
         polling_interval: timedelta = timedelta(seconds=1)
 
     @dataclass
-    class DispatcherConfiguration:
+    class Dispatcher:
         polling_interval: timedelta = timedelta(seconds=0.1)
         batch_size: int = 500
         concurrency_maintenance: bool = True
         concurrency_maintenance_interval: timedelta = timedelta(minutes=5)
 
     @dataclass
-    class RecurringTaskConfiguration:
+    class RecurringTask:
         key: str
         class_name: Optional[str] = None
         command: Optional[str] = None
@@ -32,36 +32,35 @@ class Configuration:
         description: Optional[str] = None
 
         @classmethod
-        def discover(cls) -> list["Configuration.RecurringTaskConfiguration"]:
+        def discover(cls) -> list["Configuration.RecurringTask"]:
             from steady_queue.recurring_task import configurations
 
             return configurations
 
     @dataclass
-    class ConfigurationOptions:
-        workers: list["Configuration.WorkerConfiguration"]
-        dispatchers: list["Configuration.DispatcherConfiguration"]
-        recurring_tasks: list["Configuration.RecurringTaskConfiguration"]
+    class Options:
+        workers: list["Configuration.Worker"]
+        dispatchers: list["Configuration.Dispatcher"]
+        recurring_tasks: list["Configuration.RecurringTask"]
         only_work: bool = False
         skip_recurring: bool = False
 
         def __init__(
             self,
-            workers: list["Configuration.WorkerConfiguration"] | None = None,
-            dispatchers: list["Configuration.DispatcherConfiguration"] | None = None,
-            recurring_tasks: list["Configuration.RecurringTaskConfiguration"]
-            | None = None,
+            workers: list["Configuration.Worker"] | None = None,
+            dispatchers: list["Configuration.Dispatcher"] | None = None,
+            recurring_tasks: list["Configuration.RecurringTask"] | None = None,
             only_work: bool = False,
             skip_recurring: bool = False,
         ):
             if workers is None:
-                workers = [Configuration.WorkerConfiguration()]
+                workers = [Configuration.Worker()]
 
             if dispatchers is None:
-                dispatchers = [Configuration.DispatcherConfiguration()]
+                dispatchers = [Configuration.Dispatcher()]
 
             if recurring_tasks is None:
-                recurring_tasks = Configuration.RecurringTaskConfiguration.discover()
+                recurring_tasks = Configuration.RecurringTask.discover()
 
             self.workers = workers
             self.dispatchers = dispatchers
@@ -90,20 +89,20 @@ class Configuration:
 
             raise ValueError(f"Invalid process kind: {self.kind}")
 
-    def __init__(self, options: Optional[ConfigurationOptions] = None):
+    def __init__(self, options: Optional[Options] = None):
         if options is None:
-            options = self.ConfigurationOptions()
+            options = self.Options()
         self.options = options
 
     @property
-    def configured_processes(self):
+    def configured_processes(self) -> list["Configuration.Process"]:
         if self.options.only_work:
             return self.workers
 
         return self.workers + self.dispatchers + self.schedulers
 
     @property
-    def workers(self):
+    def workers(self) -> list["Configuration.Process"]:
         workers = []
         for worker_config in self.options.workers:
             workers += [
@@ -113,14 +112,14 @@ class Configuration:
         return workers
 
     @property
-    def dispatchers(self):
+    def dispatchers(self) -> list["Configuration.Process"]:
         return [
             self.Process(kind="dispatcher", attributes=dispatcher_config)
             for dispatcher_config in self.options.dispatchers
         ]
 
     @property
-    def schedulers(self):
+    def schedulers(self) -> list["Configuration.Process"]:
         return [
             self.Process(
                 kind="scheduler",

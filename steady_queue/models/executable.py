@@ -1,13 +1,19 @@
-import steady_queue
 from django.db import models
 from django.utils import timezone
-from steady_queue.models.concurrency_controls import ConcurrencyControls
+
+import steady_queue
+from steady_queue.models.concurrency_controls import (
+    ConcurrencyControls,
+    ConcurrencyControlsQuerySet,
+)
 from steady_queue.models.ready_execution import ReadyExecution
 from steady_queue.models.retryable import Retryable, RetryableQuerySet
 from steady_queue.models.schedulable import Schedulable, SchedulableQuerySet
 
 
-class ExecutableQuerySet(RetryableQuerySet, SchedulableQuerySet, models.QuerySet):
+class ExecutableQuerySet(
+    ConcurrencyControlsQuerySet, RetryableQuerySet, SchedulableQuerySet, models.QuerySet
+):
     def ready(self):
         return self.filter(ready_execution__isnull=False)
 
@@ -40,9 +46,8 @@ class Executable(ConcurrencyControls, Schedulable, Retryable):
 
     @classmethod
     def dispatch_all(cls, jobs):
-        # TODO: concurrency limits
-        without_concurrency_limits = [j for j in jobs if not j.concurrency_key]
-        with_concurrency_limits = [j for j in jobs if j.concurrency_key]
+        without_concurrency_limits = [j for j in jobs if not j.is_concurrency_limited]
+        with_concurrency_limits = [j for j in jobs if j.is_concurrency_limited]
 
         cls.dispatch_all_at_once(without_concurrency_limits)
         cls.dispatch_all_one_by_one(with_concurrency_limits)
@@ -77,8 +82,10 @@ class Executable(ConcurrencyControls, Schedulable, Retryable):
             return self.schedule()
 
     def dispatch(self):
-        # TODO: concurrency limits
-        return self.ready
+        if self.acquire_concurrency_lock():
+            return self.ready
+        else:
+            return self.block()
 
     def dispatch_bypassing_concurrency_limits(self):
         return self.ready
@@ -116,3 +123,10 @@ class Executable(ConcurrencyControls, Schedulable, Retryable):
             or getattr(self, "failed_execution", None)
             or getattr(self, "scheduled_execution", None)
         )
+
+    def save(self, *args, **kwargs):
+        creating = self._state.adding
+        super().save(*args, **kwargs)
+
+        if creating:
+            self.prepare_for_execution()

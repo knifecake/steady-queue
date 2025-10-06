@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Self
+from typing import Optional
 
 from django.db import models
 from django.utils import timezone
@@ -10,7 +10,14 @@ from steady_queue.task import SteadyQueueTask
 
 
 class JobQuerySet(ExecutableQuerySet, models.QuerySet):
-    pass
+    def enqueue(self, task: SteadyQueueTask, scheduled_at: Optional[datetime] = None):
+        try:
+            enqueued_job = self.create(**self.model.attributes_from_django_task(task))
+            task.provider_task_id = enqueued_job.id
+            return enqueued_job
+        except Exception as e:
+            # TODO: enqueue error
+            raise e
 
 
 class Job(Executable, UpdatedAtMixin, BaseModel):
@@ -53,24 +60,20 @@ class Job(Executable, UpdatedAtMixin, BaseModel):
         max_length=255, blank=True, null=True, verbose_name="concurrency key"
     )
 
-    @classmethod
-    def enqueue(
-        cls, task: SteadyQueueTask, scheduled_at: Optional[datetime] = None
-    ) -> Self:
-        if scheduled_at is None:
-            scheduled_at = timezone.now()
+    DEFAULT_QUEUE_NAME = "default"
+    DEFAULT_PRIORITY = 0
 
-        job = cls(
-            queue_name=task.queue_name,
-            class_name=task.module_path,
-            arguments=task.serialize(),
-            priority=task.priority,
-            scheduled_at=scheduled_at,
-            django_task_id=task.id,
-        )
-        job.save()
-        job.prepare_for_execution()
-        return job
+    @classmethod
+    def attributes_from_django_task(cls, task: SteadyQueueTask):
+        return {
+            "queue_name": task.queue_name or cls.DEFAULT_QUEUE_NAME,
+            "django_task_id": task.id,
+            "priority": task.priority or cls.DEFAULT_PRIORITY,
+            "scheduled_at": task.run_after or timezone.now(),
+            "class_name": task.module_path,
+            "arguments": task.serialize(),
+            "concurrency_key": task.concurrency_key,
+        }
 
     def __str__(self):
         if isinstance(self.pk, int):

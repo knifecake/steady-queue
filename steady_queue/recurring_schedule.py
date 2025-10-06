@@ -11,9 +11,7 @@ logger = logging.getLogger("steady_queue")
 
 
 class RecurringSchedule:
-    def __init__(
-        self, tasks: list[RecurringTask | Configuration.RecurringTaskConfiguration]
-    ):
+    def __init__(self, tasks: list[RecurringTask | Configuration.RecurringTask]):
         self.configured_tasks: list[RecurringTask] = [
             RecurringTask.wrap(t) for t in tasks
         ]
