@@ -133,6 +133,7 @@ class QueueAdmin(ReadOnlyAdminMixin, BaseAdmin):
     )
     readonly_fields = ("pending_jobs", "is_running")
     actions = ("pause", "resume")
+    search_fields = ("queue_name",)
 
     @admin.action(description="Pause")
     def pause(self, request, queryset):
