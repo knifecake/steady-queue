@@ -25,7 +25,7 @@ class Supervised:
 
     def register_signal_handlers(self):
         def h(signum, frame):
-            logger.info(
+            logger.debug(
                 "%(name)s received signal %(signal)s",
                 {"name": self.name, "signal": signal.strsignal(signum)},
             )
