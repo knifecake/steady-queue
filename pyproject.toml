@@ -6,12 +6,11 @@ readme = "README.md"
 authors = [
     { name = "Elias Hernandis", email = "elias@hernandis.me" }
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 keywords = ["django", "tasks", "async", "jobs", "queues"]
 classifiers = [
     "Framework :: Django",
-    "Framework :: Django :: 5.2",
-    "Programming Language :: Python :: 3.11",
+    "Framework :: Django :: 6.0",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
@@ -20,7 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "crontab>=1.0.5",
-    "django>=5.2,<6",
+    "django>=6.0,<7",
     "django-tasks>=0.8.1,<0.9.0",
 ]
 
