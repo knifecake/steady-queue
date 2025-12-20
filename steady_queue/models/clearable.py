@@ -37,7 +37,12 @@ class ClearableQuerySet(models.QuerySet):
             sleep_between_batches = timedelta(seconds=0)
 
         while True:
-            deleted = self.clearable(finished_before, class_name)[:batch_size].delete()
+            ids = list(
+                self.clearable(finished_before, class_name)[:batch_size].values_list(
+                    "pk", flat=True
+                )
+            )
+            deleted, _ = self.filter(pk__in=ids).delete()
             if deleted == 0:
                 break
 
