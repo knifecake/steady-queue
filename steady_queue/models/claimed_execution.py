@@ -1,7 +1,9 @@
 import logging
 
 from django.db import models, transaction
+from django.tasks.signals import task_finished, task_started
 
+from steady_queue.arguments import Arguments
 from steady_queue.models.execution import Execution, ExecutionQuerySet
 from steady_queue.task import SteadyQueueTask
 
@@ -70,12 +72,32 @@ class ClaimedExecution(Execution):
 
     def perform(self):
         logger.debug("performing claimed execution for job %s", self.job_id)
+        task = SteadyQueueTask.deserialize(self.job.arguments)
+        backend = task.get_backend()
+        args, kwargs = Arguments.deserialize_args_and_kwargs(
+            self.job.arguments["arguments"]
+        )
+
         try:
-            SteadyQueueTask.execute(self.job.arguments)
+            task_started.send(
+                sender=backend,
+                task_result=backend.to_task_result(task, self.job, args, kwargs),
+            )
+
+            task.func(*args, **kwargs)
+
             self.finished()
+            task_finished.send(
+                sender=backend,
+                task_result=backend.to_task_result(task, self.job, args, kwargs),
+            )
         except Exception as e:
             logger.exception("claimed execution failed", exc_info=e)
             self.failed_with(e)
+            task_finished.send(
+                sender=backend,
+                task_result=backend.to_task_result(task, self.job, args, kwargs),
+            )
         finally:
             self.unblock_next_job()
 

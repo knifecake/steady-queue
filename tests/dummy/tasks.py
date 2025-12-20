@@ -12,6 +12,11 @@ def dummy_task():
 
 
 @task()
+def task_with_args(name):
+    print(f"hello {name}, from task_with_args")
+
+
+@task()
 def long_running_task():
     print("long running task")
     time.sleep(10)

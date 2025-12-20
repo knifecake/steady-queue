@@ -3,6 +3,7 @@ from typing import Any
 from django.tasks import Task, TaskResult, TaskResultStatus
 from django.tasks.backends.base import BaseTaskBackend
 
+from steady_queue.arguments import Arguments
 from steady_queue.task import SteadyQueueTask
 
 
@@ -28,20 +29,34 @@ class SteadyQueueBackend(BaseTaskBackend):
             raise ValueError("Steady Queue only supports SteadyQueueTasks")
 
         job = Job.objects.enqueue(task, args, kwargs)
-        return self._to_task_result(task, job, args, kwargs)
+        return self.to_task_result(task, job, args, kwargs)
+
+    def execute(self, task, job):
+        job_data = job.arguments
+        args, kwargs = Arguments.deserialize_args_and_kwargs(job_data["arguments"])
+        task.func(*args, **kwargs)
 
     def get_result(self, result_id: str) -> TaskResult:
         raise NotImplementedError(
             "This backend does not support retrieving or refreshing results."
         )
 
-    def _to_task_result(
+    def to_task_result(
         self, task: SteadyQueueTask, job, args: list, kwargs: dict[str, Any]
     ) -> TaskResult:
+        if job.status == "finished":
+            status = TaskResultStatus.SUCCESSFUL
+        elif job.status == "failed":
+            status = TaskResultStatus.FAILED
+        elif job.status == "claimed":
+            status = TaskResultStatus.RUNNING
+        else:
+            status = TaskResultStatus.READY
+
         return TaskResult(
             task=task,
             id=str(job.id),
-            status=TaskResultStatus.READY,
+            status=status,
             enqueued_at=job.created_at,
             started_at=None,
             finished_at=job.finished_at,
