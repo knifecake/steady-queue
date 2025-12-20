@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import timedelta
 from typing import Optional
 
@@ -12,13 +13,13 @@ def limits_concurrency(
     group: Optional[str] = None,
 ):
     def wrapper(task: SteadyQueueTask):
-        task.concurrency_key = key
-        task.concurrency_limit = to
-        task.concurrency_duration = (
-            duration or steady_queue.default_concurrency_control_period
+        return replace(
+            task,
+            concurrency_key=key,
+            concurrency_limit=to,
+            concurrency_duration=duration
+            or steady_queue.default_concurrency_control_period,
+            concurrency_group=group or task.module_path,
         )
-        task.concurrency_group = group or task.module_path
-
-        return task
 
     return wrapper

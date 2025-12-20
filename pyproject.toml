@@ -20,7 +20,6 @@ classifiers = [
 dependencies = [
     "crontab>=1.0.5",
     "django>=6.0,<7",
-    "django-tasks>=0.8.1,<0.9.0",
 ]
 
 [project.urls]

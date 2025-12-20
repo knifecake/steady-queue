@@ -1,6 +1,6 @@
 import time
 
-from django_tasks import task
+from django.tasks import task
 
 from steady_queue.concurrency import limits_concurrency
 from steady_queue.recurring_task import recurring

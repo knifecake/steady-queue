@@ -182,20 +182,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-tasks"
-version = "0.8.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "django-stubs-ext" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ce/d9/3670506bf2a5173310ec221cc7d24585e0d91627d86c1f0a6fbe243fbb4a/django_tasks-0.8.1.tar.gz", hash = "sha256:32673a9f56108ac1ea4664dc62580e5fc3536dd40858b38fd3b6a099913244b7", size = 31407 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c2/56/da9b5df9bad6322d8a2cf38a60ecaa834fc5a9ee995a9647d2e87708ca73/django_tasks-0.8.1-py3-none-any.whl", hash = "sha256:5323f3858f7ea99d899a772b832098d8d694444b291c24f1e0ed5446272b880b", size = 43085 },
-]
-
-[[package]]
 name = "executing"
 version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -566,7 +552,6 @@ source = { editable = "." }
 dependencies = [
     { name = "crontab" },
     { name = "django" },
-    { name = "django-tasks" },
 ]
 
 [package.dev-dependencies]
@@ -588,7 +573,6 @@ dev = [
 requires-dist = [
     { name = "crontab", specifier = ">=1.0.5" },
     { name = "django", specifier = ">=6.0,<7" },
-    { name = "django-tasks", specifier = ">=0.8.1,<0.9.0" },
 ]
 
 [package.metadata.requires-dev]

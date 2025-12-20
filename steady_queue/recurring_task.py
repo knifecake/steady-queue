@@ -1,4 +1,5 @@
 import logging
+from dataclasses import replace
 from typing import Optional
 
 from steady_queue.configuration import Configuration
@@ -36,8 +37,6 @@ def recurring(
                 "The given task does not look to be a Django task. Did you forget to decorate it with @task()?"
             )
 
-        task.args = args
-        task.kwargs = kwargs
         configuration = Configuration.RecurringTask(
             key=key,
             class_name=class_name,
@@ -49,6 +48,6 @@ def recurring(
         )
         configurations.append(configuration)
 
-        return task
+        return replace(task, args=args, kwargs=kwargs)
 
     return wrapper

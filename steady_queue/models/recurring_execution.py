@@ -1,5 +1,5 @@
 from django.db import models
-from django_tasks import TaskResult
+from django.tasks import TaskResult
 
 from .execution import Execution, ExecutionQuerySet
 

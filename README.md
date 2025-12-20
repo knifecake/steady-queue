@@ -13,8 +13,8 @@ Steady Queue can be used with SQL databases such as MySQL, PostgreSQL or SQLite,
 
 ## Installation
 
-1. **Install the `steady_queue` package.** Since Steady Queue depends on interfaces defined by DEP 0014 which has not become part of Django yet, it will add django-tasks (the reference implementation) as a dependency.
-2. **Add `steady_queue` and `django_tasks` to your `INSTALLED_APPS`** in `settings.py`.
+1. **Install the `steady_queue` package.**
+2. **Add `steady_queue` to your `INSTALLED_APPS`** in `settings.py`.
 3. **Configure Steady Queue as a task backend.** In `settings.py`, add the Steady Queue backend:
    ```python
    TASKS = {
@@ -36,11 +36,10 @@ For small projects, you can run Steady Queue on the same machine as your webserv
 
 Steady Queue works like any other DEP 0014-compatible task backend.
 
-Tasks are functions decorated with the `@task` decorator from `django_tasks`
-(which will become `django.tasks` once integrated into Django):
+Tasks are functions decorated with the `@task` decorator from `django.tasks`:
 
 ```python
-from django_tasks import task
+from django.task import task
 
 @task()
 def greet(name: str, times: int = 1):
@@ -392,7 +391,7 @@ Steady Queue extends Django Tasks with concurrency controls, that allows you to 
 
 
 ```python
-from django_tasks import task
+from django.tasks import task
 
 from steady_queue.concurrency import limits_concurrency
 

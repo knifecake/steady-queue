@@ -1,6 +1,5 @@
-from django_tasks import ResultStatus, Task, TaskResult
-from django_tasks.backends.base import BaseTaskBackend
-from django_tasks.task import P, T
+from django.tasks import Task, TaskResult, TaskResultStatus
+from django.tasks.backends.base import BaseTaskBackend
 
 from steady_queue.task import SteadyQueueTask
 
@@ -18,9 +17,7 @@ class SteadyQueueBackend(BaseTaskBackend):
         # TODO: do we need to do anything here?
         super().validate_task(task)
 
-    def enqueue(
-        self, task: Task[P, T], args: P.args, kwargs: P.kwargs
-    ) -> TaskResult[T]:
+    def enqueue(self, task, args, kwargs) -> TaskResult:
         from steady_queue.models import Job
 
         if not isinstance(task, SteadyQueueTask):
@@ -40,7 +37,7 @@ class SteadyQueueBackend(BaseTaskBackend):
         return TaskResult(
             task=task,
             id=str(job.id),
-            status=ResultStatus("READY"),
+            status=TaskResultStatus.READY,
             enqueued_at=job.created_at,
             started_at=None,
             finished_at=job.finished_at,

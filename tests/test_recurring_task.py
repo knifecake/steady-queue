@@ -1,5 +1,5 @@
+from django.tasks import task
 from django.test import SimpleTestCase
-from django_tasks import task
 
 from steady_queue.recurring_task import configurations, recurring
 
