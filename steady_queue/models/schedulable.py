@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+
 from steady_queue.models.scheduled_execution import ScheduledExecution
 
 
@@ -18,7 +19,7 @@ class Schedulable:
     @classmethod
     def schedule_all(cls, jobs):
         cls.schedule_all_at_once(jobs)
-        cls.objects.successfully_scheduled(jobs)
+        return cls.objects.successfully_scheduled(jobs)
 
     @classmethod
     def schedule_all_at_once(cls, jobs):
