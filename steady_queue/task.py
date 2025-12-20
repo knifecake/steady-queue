@@ -1,5 +1,4 @@
 import datetime
-import uuid
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -23,10 +22,6 @@ class SteadyQueueTask(Task):
 
     def __post_init__(self):
         self.get_backend().validate_task(self)
-
-    @property
-    def id(self) -> str:
-        return str(uuid.uuid4())
 
     def using(
         self,
@@ -52,7 +47,6 @@ class SteadyQueueTask(Task):
     def serialize(self, args: list, kwargs: dict):
         return {
             "class_name": self.module_path,
-            "job_id": self.id,  # TODO: make it stable
             "backend": self.backend,
             "queue_name": self.queue_name,
             "priority": self.priority,

@@ -68,7 +68,6 @@ class Job(Executable, UpdatedAtMixin, BaseModel):
     ):
         return {
             "queue_name": task.queue_name or cls.DEFAULT_QUEUE_NAME,
-            "django_task_id": task.id,
             "priority": task.priority or cls.DEFAULT_PRIORITY,
             "scheduled_at": task.run_after or timezone.now(),
             "class_name": task.module_path,
