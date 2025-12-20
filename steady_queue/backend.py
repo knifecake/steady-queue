@@ -2,6 +2,7 @@ from typing import Any
 
 from django.tasks import Task, TaskResult, TaskResultStatus
 from django.tasks.backends.base import BaseTaskBackend
+from django.tasks.signals import task_enqueued
 
 from steady_queue.arguments import Arguments
 from steady_queue.task import SteadyQueueTask
@@ -29,7 +30,9 @@ class SteadyQueueBackend(BaseTaskBackend):
             raise ValueError("Steady Queue only supports SteadyQueueTasks")
 
         job = Job.objects.enqueue(task, args, kwargs)
-        return self.to_task_result(task, job, args, kwargs)
+        task_result = self.to_task_result(task, job, args, kwargs)
+        task_enqueued.send(sender=self, task_result=task_result)
+        return task_result
 
     def execute(self, task, job):
         job_data = job.arguments
