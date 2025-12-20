@@ -376,9 +376,26 @@ There are several settings that control how Steady Queue works that you can set 
   the `duration` parameter in [concurrency controls](#concurrency-controls). It
   defaults to 3 minutes.
 
-## Lifecycle hooks
+## Signals (Lifecycle hooks)
 
-TODO
+Steady Queue sends the following signals throughout the lifetime of a task:
+
+- `django.tasks.signals.task_enqueued` when the task is first enqueued (and has
+  been inserted into the database).
+- `django.tasks.signals.task_started` when a worker starts executing the task
+- `django.tasks.signals.task_finished` when task execution finishes or errors
+
+All include the standard `sender` argument which is the `SolidQueueBackend`
+instance that is handling the task, as well as the `task_result` (a
+`django.tasks.TaskResult` instance) with information on how the task was called
+and its status.
+
+Unlike Solid Queue, steady queue doesn't yet emit signals related to the
+lifecycle of its processes.
+
+## Logging
+
+Steady Queue uses the standard Python logging module to emit traces on the `steady_queue` logger.
 
 ## Errors when enqueueing
 
@@ -524,9 +541,6 @@ TODO
 
 TODO
 
-# Logging
-
-TODO
 
 ## Tasks and transactional integrity
 
