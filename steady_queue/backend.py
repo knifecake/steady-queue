@@ -21,9 +21,7 @@ class SteadyQueueBackend(BaseTaskBackend):
         # TODO: do we need to do anything here?
         super().validate_task(task)
 
-    def enqueue(
-        self, task: SteadyQueueTask, args: list, kwargs: dict[str, Any]
-    ) -> TaskResult:
+    def enqueue(self, task, args: list, kwargs: dict[str, Any]) -> TaskResult:
         from steady_queue.models import Job
 
         if not isinstance(task, SteadyQueueTask):
