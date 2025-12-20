@@ -1,5 +1,6 @@
-import steady_queue
 from django.utils import timezone
+
+import steady_queue
 from steady_queue.processes.errors import ProcessPrunedError
 
 
@@ -10,9 +11,9 @@ class PrunableQuerySet:
         )
 
     def prune(self):
-        prunable = self.prunable()
-
-        prunable.select_for_update(skip_locked=True).iterator(chunk_size=50)
+        prunable = (
+            self.prunable().select_for_update(skip_locked=True).iterator(chunk_size=50)
+        )
 
         for process in prunable:
             process.prune()
