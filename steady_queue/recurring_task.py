@@ -1,5 +1,4 @@
 import logging
-from dataclasses import replace
 from typing import Optional
 
 from steady_queue.configuration import Configuration
@@ -41,13 +40,13 @@ def recurring(
             key=key,
             class_name=class_name,
             schedule=schedule,
-            arguments=task.serialize(),
+            arguments=task.serialize(args, kwargs),
             queue_name=queue_name,
             priority=priority,
             description=description,
         )
         configurations.append(configuration)
 
-        return replace(task, args=args, kwargs=kwargs)
+        return task
 
     return wrapper

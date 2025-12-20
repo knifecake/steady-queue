@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 
 from django.db import models
@@ -10,11 +9,11 @@ from steady_queue.task import SteadyQueueTask
 
 
 class JobQuerySet(ExecutableQuerySet, models.QuerySet):
-    def enqueue(self, task: SteadyQueueTask, scheduled_at: Optional[datetime] = None):
+    def enqueue(self, task: SteadyQueueTask, args: list, kwargs: dict):
         try:
-            enqueued_job = self.create(**self.model.attributes_from_django_task(task))
-            task.provider_task_id = enqueued_job.id
-            return enqueued_job
+            return self.create(
+                **self.model.attributes_from_django_task(task, args, kwargs)
+            )
         except Exception as e:
             # TODO: enqueue error
             raise e
@@ -64,14 +63,16 @@ class Job(Executable, UpdatedAtMixin, BaseModel):
     DEFAULT_PRIORITY = 0
 
     @classmethod
-    def attributes_from_django_task(cls, task: SteadyQueueTask):
+    def attributes_from_django_task(
+        cls, task: SteadyQueueTask, args: list, kwargs: dict
+    ):
         return {
             "queue_name": task.queue_name or cls.DEFAULT_QUEUE_NAME,
             "django_task_id": task.id,
             "priority": task.priority or cls.DEFAULT_PRIORITY,
             "scheduled_at": task.run_after or timezone.now(),
             "class_name": task.module_path,
-            "arguments": task.serialize(),
+            "arguments": task.serialize(args, kwargs),
             "concurrency_key": task.concurrency_key,
         }
 

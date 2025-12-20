@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import Any, Optional
 
 from django.tasks import Task, TaskResult
@@ -16,9 +16,6 @@ class UnknownTaskClassError(Exception):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class SteadyQueueTask(Task):
-    args: Optional[list[Any]] = None
-    kwargs: Optional[dict[str, Any]] = None
-
     concurrency_key: Optional[str] = None
     concurrency_limit: Optional[int] = None
     concurrency_duration: Optional[timezone.timedelta] = None
@@ -42,7 +39,7 @@ class SteadyQueueTask(Task):
         if isinstance(run_after, datetime.timedelta):
             run_after = timezone.now() + run_after
 
-        return super().using(
+        return super(SteadyQueueTask, self).using(
             priority=priority,
             queue_name=queue_name,
             run_after=run_after,
@@ -52,14 +49,14 @@ class SteadyQueueTask(Task):
     def enqueue(self, *args: Any, **kwargs: Any) -> TaskResult:
         return self.get_backend().enqueue(self, args, kwargs)
 
-    def serialize(self):
+    def serialize(self, args: list, kwargs: dict):
         return {
             "class_name": self.module_path,
             "job_id": self.id,  # TODO: make it stable
             "backend": self.backend,
             "queue_name": self.queue_name,
             "priority": self.priority,
-            "arguments": Arguments.serialize_args_and_kwargs(self.args, self.kwargs),
+            "arguments": Arguments.serialize_args_and_kwargs(args, kwargs),
             "locale": translation.get_language(),
             "timezone": timezone.get_current_timezone_name(),
             "enqueued_at": timezone.now().isoformat(),
@@ -68,8 +65,9 @@ class SteadyQueueTask(Task):
 
     @classmethod
     def execute(cls, job_data: dict[str, Any]):
+        args, kwargs = Arguments.deserialize_args_and_kwargs(job_data["arguments"])
         task = cls.deserialize(job_data)
-        task.func(*task.args, **task.kwargs)
+        task.func(*args, **kwargs)
 
     @classmethod
     def deserialize(cls, job_data: dict[str, Any]):
@@ -78,11 +76,13 @@ class SteadyQueueTask(Task):
         except ImportError as e:
             raise UnknownTaskClassError(job_data["class_name"]) from e
 
-        task = task_class.using(
+        return task_class.using(
             priority=job_data["priority"],
             queue_name=job_data["queue_name"],
-            run_after=job_data["scheduled_at"],
+            run_after=(
+                timezone.datetime.fromisoformat(job_data["scheduled_at"])
+                if job_data["scheduled_at"]
+                else None
+            ),
             backend=job_data["backend"],
         )
-        args, kwargs = Arguments.deserialize_args_and_kwargs(job_data["arguments"])
-        return replace(task, args=args, kwargs=kwargs)

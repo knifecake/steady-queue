@@ -4,8 +4,7 @@ Steady Queue is a port to Django of the excellent [Solid
 Queue][solid-queue-github] DB-based queueing backend for Ruby on Rails. The goal
 of this port has been to keep the internals as close as possible to a direct
 translation from Ruby to Python, while adapting the external interfaces to be
-idiomatic in Django and Python. Read more on the differences between Steady
-Queue and Solid Queue below.
+idiomatic in Django. Read more on the [differences between Steady Queue and Solid Queue below](#deviations-from-solid-queue).
 
 Steady queue exposes a task backend that is compatible with the background worker specification outlined in [DEP 0014][DEP0014]. In addition to task enqueueing and processing, it supports delayed tasks, concurrency controls, recurring tasks, pausing queues, numeric priorities per task, priorities by queue order and bulk enqueueing.
 
@@ -39,7 +38,7 @@ Steady Queue works like any other DEP 0014-compatible task backend.
 Tasks are functions decorated with the `@task` decorator from `django.tasks`:
 
 ```python
-from django.task import task
+from django.tasks import task
 
 @task()
 def greet(name: str, times: int = 1):
