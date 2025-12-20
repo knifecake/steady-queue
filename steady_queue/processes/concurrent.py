@@ -22,7 +22,6 @@ class AtomicInteger:
             return self._value
 
 
-# TODO: types
 class Dict:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -43,7 +42,7 @@ class Dict:
 
     def values(self):
         with self._lock:
-            return self._dict.values()
+            return list(self._dict.values())
 
     def clear(self):
         with self._lock:
