@@ -36,13 +36,11 @@ def recurring(
                 "The given task does not look to be a Django task. Did you forget to decorate it with @task()?"
             )
 
-        task.args = args
-        task.kwargs = kwargs
         configuration = Configuration.RecurringTask(
             key=key,
             class_name=class_name,
             schedule=schedule,
-            arguments=task.serialize(),
+            arguments=task.serialize(args, kwargs),
             queue_name=queue_name,
             priority=priority,
             description=description,
