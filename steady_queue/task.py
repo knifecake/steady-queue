@@ -15,6 +15,9 @@ class UnknownTaskClassError(Exception):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class SteadyQueueTask(Task):
+    # For backwards compatibility with previous versions of django_tasks
+    enqueue_on_commit: Optional[bool] = None
+
     concurrency_key: Optional[str] = None
     concurrency_limit: Optional[int] = None
     concurrency_duration: Optional[timezone.timedelta] = None
