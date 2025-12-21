@@ -25,6 +25,20 @@ else
      postgres:17.4-alpine
 fi
 
+echo "Waiting for PostgreSQL to be ready..."
+RETRIES=30
+until docker exec "$CONTAINER_NAME" pg_isready -U steady_queue -d postgres > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+    echo "Waiting for PostgreSQL, $((RETRIES--)) remaining attempts..."
+    sleep 0.5
+done
+
+if [ $RETRIES -eq 0 ]; then
+    echo "Failed to connect to PostgreSQL"
+    exit 1
+fi
+
+echo "PostgreSQL is ready!"
+
 ensure_db_exists "$PRIMARY_DB"
 ensure_db_exists "$JOBS_DB"
 

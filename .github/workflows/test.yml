@@ -40,7 +40,6 @@ jobs:
       - name: Run tests
         run: |
           tests/bin/run-docker-postgres
-          sleep 10
           uv run coverage run runtests.py
 
       - name: Report coverage
