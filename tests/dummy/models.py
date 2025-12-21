@@ -8,3 +8,6 @@ class Dummy(models.Model):
 
     def work(self):
         dummy_task.enqueue()
+
+    def __str__(self):
+        return self.name

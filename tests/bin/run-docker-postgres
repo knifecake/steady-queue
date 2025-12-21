@@ -3,17 +3,43 @@
 set -eu -o pipefail
 
 CONTAINER_NAME="steady-postgres"
+PRIMARY_DB="app"
+JOBS_DB="queue"
+
+ensure_db_exists() {
+    local db_name="$1"
+    docker exec "$CONTAINER_NAME" psql -U steady_queue -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'" | grep -q 1 \
+        || docker exec "$CONTAINER_NAME" psql -U steady_queue -d postgres -c "CREATE DATABASE ${db_name} OWNER steady_queue"
+}
 
 if docker ps --format "table {{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
     echo "Container $CONTAINER_NAME is already running"
-    exit 0
+else
+    echo "Starting container $CONTAINER_NAME"
+    docker run --detach \
+     --name "$CONTAINER_NAME" \
+     --publish 5432:5432 \
+     --env POSTGRES_DB=$PRIMARY_DB \
+     --env POSTGRES_USER=steady_queue \
+     --env POSTGRES_PASSWORD=steady_queue \
+     postgres:17.4-alpine
 fi
 
-echo "Starting container $CONTAINER_NAME"
-docker run --detach \
- --name "$CONTAINER_NAME" \
- --publish 5432:5432 \
- --env POSTGRES_DB=steady_queue \
- --env POSTGRES_USER=steady_queue \
- --env POSTGRES_PASSWORD=steady_queue \
- postgres:17.4-alpine
+echo "Waiting for PostgreSQL to be ready..."
+RETRIES=30
+until docker exec "$CONTAINER_NAME" pg_isready -U steady_queue -d postgres > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+    echo "Waiting for PostgreSQL, $((RETRIES--)) remaining attempts..."
+    sleep 0.5
+done
+
+if [ $RETRIES -eq 0 ]; then
+    echo "Failed to connect to PostgreSQL"
+    exit 1
+fi
+
+echo "PostgreSQL is ready!"
+
+ensure_db_exists "$PRIMARY_DB"
+ensure_db_exists "$JOBS_DB"
+
+echo "Databases ensured: $PRIMARY_DB, $JOBS_DB"

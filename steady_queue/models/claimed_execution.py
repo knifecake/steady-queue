@@ -103,12 +103,12 @@ class ClaimedExecution(Execution):
 
     def finished(self):
         logger.debug("claimed execution for job %s finished", self.job_id)
-        with transaction.atomic():
+        with transaction.atomic(using=self._state.db):
             self.job.finished()
             self.delete()
 
     def failed_with(self, error: Exception | str):
         logger.debug("claimed execution for job %s failed with %s", self.job_id, error)
-        with transaction.atomic():
+        with transaction.atomic(using=self._state.db):
             self.job.failed_with(error)
             self.delete()

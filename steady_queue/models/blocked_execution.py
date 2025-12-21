@@ -23,7 +23,7 @@ class BlockedExecutionQuerySet(ExecutionQuerySet):
         return sum(1 for key in concurrency_keys if self.release_one(key))
 
     def release_one(self, concurrency_key: str):
-        with transaction.atomic():
+        with transaction.atomic(using=self.db):
             execution = (
                 self.in_order()
                 .filter(concurrency_key=concurrency_key)
@@ -96,7 +96,7 @@ class BlockedExecution(Execution):
         self.expires_at = timezone.now() + self.job.concurrency_duration
 
     def release(self) -> bool:
-        with transaction.atomic():
+        with transaction.atomic(using=self._state.db):
             if self.acquire_concurrency_lock():
                 self.promote_to_ready()
                 self.delete()

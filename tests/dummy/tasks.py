@@ -17,6 +17,17 @@ def task_with_args(name):
 
 
 @task()
+def update_all_names(name):
+    from tests.dummy.models import Dummy
+
+    print(f"Updating name to {name} in all Dummy models")
+
+    for dummy in Dummy.objects.all():
+        dummy.name = name
+        dummy.save()
+
+
+@task()
 def long_running_task():
     print("long running task")
     time.sleep(10)

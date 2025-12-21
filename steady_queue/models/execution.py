@@ -14,7 +14,7 @@ class ExecutionQuerySet(models.QuerySet):
         total_discarded = 0
 
         while True:
-            with transaction.atomic():
+            with transaction.atomic(using=self.db):
                 to_discard = self.order_by("job_id").select_for_update()[:batch_size]
                 discarded = self.discard_jobs(to_discard)
                 pending -= discarded

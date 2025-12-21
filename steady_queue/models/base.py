@@ -24,6 +24,6 @@ class BaseModel(CreatedAtMixin, models.Model):
 
     @contextmanager
     def lock(self):
-        with transaction.atomic():
+        with transaction.atomic(using=self._state.db):
             self.refresh_from_db(from_queryset=type(self).objects.select_for_update())
             yield

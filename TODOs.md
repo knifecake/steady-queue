@@ -35,7 +35,7 @@
 - [x] Concurrency controls
 - [x] Signals on tasks: enqueue, pre/post perform
 - [x] Tests
-- [ ] Support for multiple databases
+- [x] Support for a separate database
 - [ ] Make priorities align with Django's documentation
 - [ ] Lifecycle hooks on processes
 - [ ] Django checks
