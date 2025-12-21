@@ -35,12 +35,20 @@ MIDDLEWARE = [
 DATABASES = {
     "default": env.db(
         "DB_URL",
-        default="postgres://steady_queue:steady_queue@localhost:5432/steady_queue",
+        default="postgres://steady_queue:steady_queue@localhost:5432/default",
+    ),
+    "queue": env.db(
+        "STEADY_QUEUE_DB_URL",
+        default="postgres://steady_queue:steady_queue@localhost:5432/queue",
     ),
 }
 
-if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
-    DATABASES["default"]["OPTIONS"] = {"pool": {"min_size": 2, "max_size": 4}}
+DATABASE_ROUTERS = ["steady_queue.db_router.SteadyQueueRouter"]
+
+if DATABASES["queue"]["ENGINE"] == "django.db.backends.postgresql":
+    DATABASES["queue"]["OPTIONS"] = {"pool": {"min_size": 2, "max_size": 4}}
+    DATABASES["queue"]["TEST"] = {"NAME": "test_queue"}
+    DATABASES["default"]["TEST"] = {"NAME": "test_default"}
 
 
 # Tasks
@@ -51,6 +59,23 @@ TASKS = {
         "OPTIONS": {},
     }
 }
+
+
+STEADY_QUEUE = Configuration.Options(
+    dispatchers=[
+        Configuration.Dispatcher(polling_interval=timedelta(seconds=1), batch_size=500)
+    ],
+    workers=[
+        Configuration.Worker(
+            queues=["*"],
+            threads=2,
+            polling_interval=timedelta(seconds=0.1),
+            processes=2,
+        )
+    ],
+    database="queue",
+)
+
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -88,21 +113,6 @@ TEMPLATES = [
         },
     },
 ]
-
-
-STEADY_QUEUE = Configuration.Options(
-    dispatchers=[
-        Configuration.Dispatcher(polling_interval=timedelta(seconds=1), batch_size=500)
-    ],
-    workers=[
-        Configuration.Worker(
-            queues=["*"],
-            threads=2,
-            polling_interval=timedelta(seconds=0.1),
-            processes=2,
-        )
-    ],
-)
 
 
 # Logging

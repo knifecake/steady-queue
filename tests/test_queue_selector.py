@@ -7,6 +7,8 @@ from steady_queue.queue_selector import QueueSelector
 
 
 class TestQueueSelector(TestCase):
+    databases = {"default", "queue"}
+
     @classmethod
     def setUpTestData(cls):
         cls.job_1 = cls.create_dummy_job_in_queue("q1")

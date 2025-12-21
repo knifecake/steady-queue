@@ -4,17 +4,25 @@ Steady Queue is a port to Django of the excellent [Solid
 Queue][solid-queue-github] DB-based queueing backend for Ruby on Rails. The goal
 of this port has been to keep the internals as close as possible to a direct
 translation from Ruby to Python, while adapting the external interfaces to be
-idiomatic in Django. Read more on the [differences between Steady Queue and Solid Queue below](#deviations-from-solid-queue).
+idiomatic in Django. Read more on the [differences between Steady Queue and
+Solid Queue below](#deviations-from-solid-queue).
 
-Steady queue exposes a task backend that is compatible with the background worker specification outlined in [DEP 0014][DEP0014]. In addition to task enqueueing and processing, it supports delayed tasks, concurrency controls, recurring tasks, pausing queues, numeric priorities per task, priorities by queue order and bulk enqueueing.
+Steady queue exposes a task backend that is compatible with the background
+worker specification outlined in [DEP 0014][DEP0014]. In addition to task
+enqueueing and processing, it supports delayed tasks, concurrency controls,
+recurring tasks, pausing queues, numeric priorities per task, priorities by
+queue order and bulk enqueueing.
 
-Steady Queue can be used with SQL databases such as MySQL, PostgreSQL or SQLite, and it leverages the `FOR UPDATE SKIP LOCKED` clause, if available, to avoid blocking and waiting on locks when polling tasks.
+Steady Queue can be used with SQL databases such as MySQL, PostgreSQL or SQLite,
+and it leverages the `FOR UPDATE SKIP LOCKED` clause, if available, to avoid
+blocking and waiting on locks when polling tasks.
 
 ## Installation
 
-1. **Install the `steady_queue` package.**
+1. **Install the `steady_queue` package,** e.g. run `pip install steady_queue`.
 2. **Add `steady_queue` to your `INSTALLED_APPS`** in `settings.py`.
-3. **Configure Steady Queue as a task backend.** In `settings.py`, add the Steady Queue backend:
+3. **Configure Steady Queue as a task backend.** In `settings.py`, add the
+   Steady Queue backend:
    ```python
    TASKS = {
        "default": {
@@ -24,12 +32,25 @@ Steady Queue can be used with SQL databases such as MySQL, PostgreSQL or SQLite,
        }
    }
    ```
-4. **Migrate your database** with `python3 manage.py migrate`.
+4. (Optional) [Configure a separate database for Steady
+   Queue](#database-configuration) to avoid accidentally relying on
+   transactional integrity.
+5. **Migrate your database** with `python3 manage.py migrate` (or `python3
+   manage.py migrate --database queue` if you configured a separate DB).
 
 
-Now you're ready to start processing tasks by running `python manage.py steady_queue` on the server that's doing the work. This will start processing tasks in all queues using the default configuration. See below to learn more about configuring Steady Queue.
+Now you're ready to start processing tasks by running `python manage.py
+steady_queue` on the server that's doing the work. This will start processing
+tasks in all queues using the default configuration. See below to learn more
+about configuring Steady Queue.
 
-For small projects, you can run Steady Queue on the same machine as your webserver. When you're ready to scale, Steady Queue supports horizontal scaling out-of-the-box. You can run Steady Queue on a separate server from your webserver, or even run `python manage.py steady_queue` on multiple machines at the same time. Depending on the configuration, you can designate some machines to run only dispatchers or only workers. See the configuration section for more details on this.
+For small projects, you can run Steady Queue on the same machine as your
+webserver. When you're ready to scale, Steady Queue supports horizontal scaling
+out-of-the-box. You can run Steady Queue on a separate server from your
+webserver, or even run `python manage.py steady_queue` on multiple machines at
+the same time. Depending on the configuration, you can designate some machines
+to run only dispatchers or only workers. See the configuration section for more
+details on this.
 
 ## Usage
 
@@ -62,10 +83,14 @@ def tralalero():
     print('tralala')
 ```
 
-- `priority` is a non-negative integer determining the importance of tasks within the same queue. The smaller the value, the higher the priority. The default value is `0`.
+- `priority` is a non-negative integer determining the importance of tasks
+  within the same queue. The smaller the value, the higher the priority. The
+  default value is `0`.
 - `queue_name` is the name of the queue where instances of this task will run.
   If not specified, it defaults to the `default` queue.
-- `backend` is the key of the backend that will be used in the `TASKS` configuration in `settings.py`. If not specified, the `default` backend is selected.
+- `backend` is the key of the backend that will be used in the `TASKS`
+  configuration in `settings.py`. If not specified, the `default` backend is
+  selected.
 
 These attributes can also be modified at runtime with `.using()`:
 
@@ -105,7 +130,11 @@ decorator.
 
 ### High performance requirements
 
-Steady Queue was designed for the highest throughput when used with MySQL 8+ or PostgreSQL 9.5+, as they support `FOR UPDATE SKIP LOCKED`. You can use it with older versions, but in that case, you might run into lock waits if you run multiple workers for the same queue. You can also use it with SQLite on smaller applications.
+Steady Queue was designed for the highest throughput when used with MySQL 8+ or
+PostgreSQL 9.5+, as they support `FOR UPDATE SKIP LOCKED`. You can use it with
+older versions, but in that case, you might run into lock waits if you run
+multiple workers for the same queue. You can also use it with SQLite on smaller
+applications.
 
 ## Configuration
 
@@ -113,14 +142,26 @@ Steady Queue was designed for the highest throughput when used with MySQL 8+ or 
 
 We have several types of actors in Steady Queue:
 
-- _Workers_ are in charge of picking tasks ready to run from queues and processing them. They work off the `steady_queue_ready_executions` table.
-- _Dispatchers_ are in charge of selecting tasks scheduled to run in the future that are due and _dispatching_ them, which is simply moving them from the `steady_queue_scheduled_executions` table over to the `steady_queue_ready_executions` table so that workers can pick them up. On top of that, they do some maintenance work related to [concurrency controls](#concurrency-controls).
-- The _scheduler_ manages [recurring tasks](#recurring-tasks), enqueuing tasks for them when they're due.
-- The _supervisor_ runs workers and dispatchers according to the configuration, controls their heartbeats, and stops and starts them when needed.
+- _Workers_ are in charge of picking tasks ready to run from queues and
+  processing them. They work off the `steady_queue_ready_executions` table.
+- _Dispatchers_ are in charge of selecting tasks scheduled to run in the future
+  that are due and _dispatching_ them, which is simply moving them from the
+  `steady_queue_scheduled_executions` table over to the
+  `steady_queue_ready_executions` table so that workers can pick them up. On top
+  of that, they do some maintenance work related to [concurrency
+  controls](#concurrency-controls).
+- The _scheduler_ manages [recurring tasks](#recurring-tasks), enqueuing tasks
+  for them when they're due.
+- The _supervisor_ runs workers and dispatchers according to the configuration,
+  controls their heartbeats, and stops and starts them when needed.
 
-Steady Queue's supervisor will fork a separate process for each supervised worker/dispatcher/scheduler.
+Steady Queue's supervisor will fork a separate process for each supervised
+worker/dispatcher/scheduler.
 
-Steady Queue will try to find our configuration under the `STEADY_QUEUE` variable in `settings.py`. Everything is optional. If no configuration is provided, Steady Queue will run with one dispatcher and one worker per the default settings:
+Steady Queue will try to find our configuration under the `STEADY_QUEUE`
+variable in `settings.py`. Everything is optional. If no configuration is
+provided, Steady Queue will run with one dispatcher and one worker per the
+default settings:
 
 ```python
 # settings.py
@@ -144,13 +185,18 @@ STEADY_QUEUE = Configuration.Options(
 )
 ```
 
-Everything is optional. If no configuration is provided at all, or no configuration is given for workers or dispatchers, Steady Queue will run with the defaults above.
+Everything is optional. If no configuration is provided at all, or no
+configuration is given for workers or dispatchers, Steady Queue will run with
+the defaults above.
 
 Here's an overview of the different options:
 
-- `polling_interval`: the time interval in seconds that workers and dispatchers will wait before checking for more tasks. This time defaults to `1` second for dispatchers and `0.1` seconds for workers.
+- `polling_interval`: the time interval in seconds that workers and dispatchers
+  will wait before checking for more tasks. This time defaults to `1` second for
+  dispatchers and `0.1` seconds for workers.
 
-- `batch_size`: the dispatcher will dispatch tasks in batches of this size. The default is 500.
+- `batch_size`: the dispatcher will dispatch tasks in batches of this size. The
+  default is 500.
 
 - `concurrency_maintenance_interval`: the time interval in seconds that the
   dispatcher will wait before checking for blocked tasks that can be unblocked.
@@ -173,7 +219,10 @@ Here's an overview of the different options:
   'background']`, and the behavior with respect to order will be the same as
   with only exact names.
 
-  Check the sections below on [how queue order behaves combined with priorities](#queue-order-and-priorities), and [how the way you specify the queues per worker might affect performance](#queues-specification-and-performance).
+  Check the sections below on [how queue order behaves combined with
+  priorities](#queue-order-and-priorities), and [how the way you specify the
+  queues per worker might affect
+  performance](#queues-specification-and-performance).
 
 - `threads`: this is the max size of the thread pool that each worker will have
   to run tasks. Each worker will fetch this number of tasks from their queue(s),
@@ -254,7 +303,8 @@ sort. This means that if you specify your queues as:
 queues=['beta*']
 ```
 
-we'll need to get a list of all existing queues matching that prefix first, with a query that would look like this:
+we'll need to get a list of all existing queues matching that prefix first, with
+a query that would look like this:
 
 ```sql
 SELECT DISTINCT(queue_name)
@@ -340,11 +390,51 @@ help identifying this kind of situation.
 
 ### Database configuration
 
-TODO
+To keep application data isolated from job storage (and avoid unintentionally
+relying on transactional integrity), route `steady_queue` to its own database
+alias.
+
+1. Add a dedicated database entry in `DATABASES`:
+
+```
+DATABASES = {
+    "default": {...},
+    "queue": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "queue",
+        "USER": "queue",
+        "PASSWORD": "queue",
+        "HOST": "localhost",
+        "PORT": 5432,
+        "TEST": {"NAME": "test_queue"},
+    },
+}
+```
+
+2. Tell Steady Queue which alias to use (via options) and register its database
+   router:
+
+```
+from steady_queue.configuration import Configuration
+
+STEADY_QUEUE = Configuration.Options(database="queue")
+DATABASE_ROUTERS = ["steady_queue.db_router.SteadyQueueRouter"]
+```
+
+3. Run migrations against the Steady Queue database:
+
+```
+python manage.py migrate --database queue steady_queue
+```
+
+When running tests, Django will create test databases for both aliases using the
+`TEST.NAME` values. This keeps job tables off your primary app database in
+development and CI.
 
 ### Other configuration settings
 
-*Note*: The settings in this section should be set directly on the `steady_queue` module. You can do this on `settings.py` as well:
+*Note*: The settings in this section should be set directly on the
+`steady_queue` module. You can do this on `settings.py` as well:
 
 ```python
 import steady_queue
@@ -403,7 +493,12 @@ TODO
 
 ## Concurrency controls
 
-Steady Queue extends Django Tasks with concurrency controls, that allows you to limit how many tasks of a certain type or with certain arguments can run at the same time. When limited in this way, tasks will be blocked from running, and they'll stay blocked until another task finishes and unblocks them, or after the set expiry time (concurrency limit's _duration_) elapses. Tasks are never discarded or lost, just blocked.
+Steady Queue extends Django Tasks with concurrency controls, that allows you to
+limit how many tasks of a certain type or with certain arguments can run at the
+same time. When limited in this way, tasks will be blocked from running, and
+they'll stay blocked until another task finishes and unblocks them, or after the
+set expiry time (concurrency limit's _duration_) elapses. Tasks are never
+discarded or lost, just blocked.
 
 
 ```python
@@ -553,26 +648,43 @@ committed. This can be very powerful and useful, but it can also backfire if you
 base some of your logic on this behavior, and in the future, you move to another
 active task backend, or if you simply move Steady Queue to its own database, and
 suddenly the behavior changes under you. Because this can be quite tricky and
-many people shouldn't need to worry about it, by default Steady Queue is
-configured in a different database as the main app.
+many people shouldn't need to worry about it, we recommend [configuring Steady
+Queue to run on a separate database](#database-configuration) from your main
+app's.
 
-By default, the `@task` decorator sets the `enqueue_on_commit` flag to `True`,
-deferring the enqueueing of the task inside a database transaction until that
-transaction successfully commits. You can set this option via the
-`enqueue_on_commit` parameter to the `@task` decorator or to the `.using()`
-method of a task:
+An option which doesn't rely on transactional integrity is to defer the
+enqueueing of a task inside a database transaction until that transaction
+successfully commits. This can be achieved using the
+[`transaction.on_commit`](transaction-on-commit) hook made available by Django:
 
 ```python
-# Sets the default enqueueing behavior for all task instances
-@task(enqueue_on_commit=False)
-def my_task():
-    pass
+from django.db import transaction
+from myapp.tasks import send_welcome_email
+from functools import partial
 
-# Enables enqueue_on_commit for a specific instance of the task
-my_task.using(enqueue_on_commit=True).enqueue()
+def sign_up():
+  user = User.objects.create('...')
+  # ...
+
+  transaction.on_commit(partial(send_welcome_email, user=user))
 ```
 
-Using this option, you can also use Steady Queue in the same database as your app but not rely on transactional integrity.
+Notice how callbacks will not be passed any arguments, but you can bind them
+with [`functools.partial`](functools-partial).
+
+Using this option, you can also use Steady Queue in the same database as your
+app but not rely on transactional integrity.
+
+If you don't use this option but still want to make sure you're not
+inadvertently relying on transactional integrity, you can make sure that:
+
+- Your tasks relying on specific data are always enqueued on [`on_commit`
+  callbacks](transaction-on-commit) or otherwise from a place where you're
+  certain that whatever data the task will use has been committed to the
+  database before the task is enqueued.
+- Or, you configure a different database for Steady Queue, even if it's the same
+  as your app, ensuring that a different connection on the thread handling
+  requests or running tasks for your app wil be used to enqueue tasks.
 
 ## Recurring tasks
 
@@ -621,7 +733,9 @@ def greet(name):
     print(f"Hello, {name}!")
 ```
 
-- `queue_name` allows specifying a different queue to be used when enqueueing the task. Otherwise, the queue passed to `@task()` or the default queue is used.
+- `queue_name` allows specifying a different queue to be used when enqueueing
+  the task. Otherwise, the queue passed to `@task()` or the default queue is
+  used.
 - `priority` is a numeric priority value used when enqueueing the task. If no
   priority is set on the recurring schedule, the priority passed to `@task()` or
   `0` is used instead.
@@ -640,10 +754,14 @@ guarantee applies as long as you keep tasks around.
 
 ## Deviations from Solid Queue
 
-The implementation of the task backend is largely a direct translation from Ruby on Rails to Django. Code organization in classes and mixins, method names, database field names and naming conventions are mostly untouched, but there are a few differences which we outline below.
+The implementation of the task backend is largely a direct translation from Ruby
+on Rails to Django. Code organization in classes and mixins, method names,
+database field names and naming conventions are mostly untouched, but there are
+a few differences which we outline below.
 
 - The ORM is of course changed from Active Record to the Django ORM.
-  - Class methods in Rails models generally become model manager methods under Django. Similarly, Active Record scopes are translated as queryset methods.
+  - Class methods in Rails models generally become model manager methods under
+    Django. Similarly, Active Record scopes are translated as queryset methods.
 - ActiveJobs (the interface for background tasks in Ruby on Rails) are called
   tasks.
   - Since Steady Queue follows [DEP 0014][DEP0014] for its public API, tasks are
@@ -657,7 +775,7 @@ The implementation of the task backend is largely a direct translation from Ruby
 - Steady Queue provides dashboards that integrate with the Django admin site and
   are roughly equivalent to [mission_control-jobs][mission_control-jobs], but
   without requiring an external dependency.
-- Command-based recurring tasks (ie, those defined by passing code directly to
+- Command-based recurring tasks (i.e., those defined by passing code directly to
   the task schedule) are not supported in Steady Queue. Considering the ease
   with which a function can be scheduled as a periodic task, it is unlikely this
   will ever be supported, but we've kept the database column for compatibility.
@@ -676,3 +794,5 @@ The package is available as open source under the terms of the [MIT License][MIT
 [DEP0014]: https://github.com/django/deps/blob/main/accepted/0014-background-workers.rst#specification
 [mission_control-jobs]: https://github.com/rails/mission_control-jobs
 [MIT]: https://opensource.org/licenses/MIT
+[transaction-on-commit]: https://docs.djangoproject.com/en/dev/topics/db/transactions/#performing-actions-after-commit
+[functools-partial]: https://docs.python.org/3/library/functools.html#functools.partial

@@ -42,6 +42,7 @@ class Configuration:
         workers: list["Configuration.Worker"]
         dispatchers: list["Configuration.Dispatcher"]
         recurring_tasks: list["Configuration.RecurringTask"]
+        database: str
         only_work: bool = False
         skip_recurring: bool = False
 
@@ -50,6 +51,7 @@ class Configuration:
             workers: list["Configuration.Worker"] | None = None,
             dispatchers: list["Configuration.Dispatcher"] | None = None,
             recurring_tasks: list["Configuration.RecurringTask"] | None = None,
+            database: str | None = None,
             only_work: bool = False,
             skip_recurring: bool = False,
         ):
@@ -62,9 +64,13 @@ class Configuration:
             if recurring_tasks is None:
                 recurring_tasks = Configuration.RecurringTask.discover()
 
+            if database is None:
+                database = "default"
+
             self.workers = workers
             self.dispatchers = dispatchers
             self.recurring_tasks = recurring_tasks
+            self.database = database
             self.only_work = only_work
             self.skip_recurring = skip_recurring
 

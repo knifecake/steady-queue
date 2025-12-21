@@ -3,17 +3,29 @@
 set -eu -o pipefail
 
 CONTAINER_NAME="steady-postgres"
+PRIMARY_DB="steady_queue"
+JOBS_DB="steady_queue_jobs"
+
+ensure_db_exists() {
+    local db_name="$1"
+    docker exec "$CONTAINER_NAME" psql -U steady_queue -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'" | grep -q 1 \
+        || docker exec "$CONTAINER_NAME" psql -U steady_queue -d postgres -c "CREATE DATABASE ${db_name} OWNER steady_queue"
+}
 
 if docker ps --format "table {{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
     echo "Container $CONTAINER_NAME is already running"
-    exit 0
+else
+    echo "Starting container $CONTAINER_NAME"
+    docker run --detach \
+     --name "$CONTAINER_NAME" \
+     --publish 5432:5432 \
+     --env POSTGRES_DB=$PRIMARY_DB \
+     --env POSTGRES_USER=steady_queue \
+     --env POSTGRES_PASSWORD=steady_queue \
+     postgres:17.4-alpine
 fi
 
-echo "Starting container $CONTAINER_NAME"
-docker run --detach \
- --name "$CONTAINER_NAME" \
- --publish 5432:5432 \
- --env POSTGRES_DB=steady_queue \
- --env POSTGRES_USER=steady_queue \
- --env POSTGRES_PASSWORD=steady_queue \
- postgres:17.4-alpine
+ensure_db_exists "$PRIMARY_DB"
+ensure_db_exists "$JOBS_DB"
+
+echo "Databases ensured: $PRIMARY_DB, $JOBS_DB"
