@@ -6,7 +6,7 @@ from .execution import Execution, ExecutionQuerySet
 class FailedExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
     def retry(self):
         # TODO: optimize
-        with transaction.atomic():
+        with transaction.atomic(using=self.db):
             count = self.count()
             for failed_execution in self.all():
                 failed_execution.retry()

@@ -35,7 +35,7 @@ MIDDLEWARE = [
 DATABASES = {
     "default": env.db(
         "DB_URL",
-        default="postgres://steady_queue:steady_queue@localhost:5432/default",
+        default="postgres://steady_queue:steady_queue@localhost:5432/app",
     ),
     "queue": env.db(
         "STEADY_QUEUE_DB_URL",

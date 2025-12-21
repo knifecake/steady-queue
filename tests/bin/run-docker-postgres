@@ -3,8 +3,8 @@
 set -eu -o pipefail
 
 CONTAINER_NAME="steady-postgres"
-PRIMARY_DB="steady_queue"
-JOBS_DB="steady_queue_jobs"
+PRIMARY_DB="app"
+JOBS_DB="queue"
 
 ensure_db_exists() {
     local db_name="$1"

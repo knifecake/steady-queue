@@ -110,7 +110,7 @@ class RecurringTask(UpdatedAtMixin, BaseModel):
         return True  # TODO: implement
 
     def enqueue_and_record(self, run_at: datetime):
-        with transaction.atomic():
+        with transaction.atomic(using=self._state.db):
             args, kwargs = Arguments.deserialize_args_and_kwargs(
                 self.arguments["arguments"]
             )

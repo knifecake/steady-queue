@@ -33,7 +33,7 @@ class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
         if limit <= 0:
             return self.none()
 
-        with transaction.atomic():
+        with transaction.atomic(using=self.db):
             candidates = self.select_candidates(limit)
             claimed = candidates.lock_candidates(process_id)
             return claimed

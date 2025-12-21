@@ -4,6 +4,8 @@ from contextlib import contextmanager
 
 from django.db import connections
 
+from steady_queue.db_router import steady_queue_database_alias
+
 logger = logging.getLogger("steady_queue")
 
 
@@ -15,8 +17,9 @@ class AppExecutor:
         Django equivalent of Rails' wrap_in_app_executor.
         Ensures proper database connection handling in background threads.
         """
-        # Ensure we have a database connection for this thread
-        connection = connections["default"]  # or your specific database alias
+        # Ensure we have a database connection for this thread on the steady_queue DB
+        alias = steady_queue_database_alias()
+        connection = connections[alias]
 
         try:
             # Ensure connection is established

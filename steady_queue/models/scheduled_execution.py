@@ -48,7 +48,7 @@ class ScheduledExecution(Dispatching, Execution):
 
     @classmethod
     def dispatch_next_batch(cls, batch_size: int) -> int:
-        with transaction.atomic():
+        with transaction.atomic(using=cls.objects.db):
             job_ids = (
                 cls.objects.next_batch(batch_size)
                 .select_for_update(skip_locked=True)
