@@ -25,6 +25,8 @@ else
      postgres:17.4-alpine
 fi
 
+sleep 1
+
 ensure_db_exists "$PRIMARY_DB"
 ensure_db_exists "$JOBS_DB"
 
