@@ -33,14 +33,14 @@
 - [x] Cleanup configuration
 - [x] Timer tasks that run immediately
 - [x] Concurrency controls
+- [x] Signals on tasks: enqueue, pre/post perform
+- [x] Tests
 - [ ] Support for multiple databases
+- [ ] Make priorities align with Django's documentation
 - [ ] Lifecycle hooks on processes
-- [ ] Tests
-- [ ] Class-based tasks
 - [ ] Django checks
 - [ ] Retry on database is locked
 - [ ] Django admin permissions
-- [ ] Signals on tasks: pre/post enqueue, pre/post perform
 - [ ] Contributing
 - [ ] Readme
 - [ ] Publish to PyPI

@@ -56,7 +56,7 @@ class Semaphore(UpdatedAtMixin, BaseModel):
         @classmethod
         def signal_all(cls, jobs) -> int:
             return Semaphore.objects.filter(
-                key=[job.concurrency_key for job in jobs]
+                key__in=[job.concurrency_key for job in jobs]
             ).update(value=models.F("value") + 1)
 
         def attempt_creation(self) -> bool:

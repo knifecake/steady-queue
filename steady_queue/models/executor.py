@@ -13,4 +13,4 @@ class Executor:
 
     @property
     def is_claiming_executions(self):
-        self.kind == "worker"
+        return self.kind == "worker"

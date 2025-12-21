@@ -11,11 +11,11 @@ class Configuration:
         queues: list[str] = field(default_factory=lambda: ["*"])
         threads: int = 3
         processes: int = 1
-        polling_interval: timedelta = timedelta(seconds=1)
+        polling_interval: timedelta = timedelta(seconds=0.1)
 
     @dataclass
     class Dispatcher:
-        polling_interval: timedelta = timedelta(seconds=0.1)
+        polling_interval: timedelta = timedelta(seconds=1)
         batch_size: int = 500
         concurrency_maintenance: bool = True
         concurrency_maintenance_interval: timedelta = timedelta(minutes=5)

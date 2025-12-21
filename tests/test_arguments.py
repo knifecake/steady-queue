@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase, TestCase
-from steady_queue.arguments import Arguments
 
+from steady_queue.arguments import Arguments
 from tests.dummy.models import Dummy
 
 
