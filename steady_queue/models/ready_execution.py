@@ -60,8 +60,9 @@ class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
         return claimed_executions
 
     def aggregated_count_across_queues(self, queues: list[str]) -> int:
-        # TODO: queue selection
-        return self.count()
+        return sum(
+            map(lambda qs: qs.count(), QueueSelector(queues, self).scoped_relations())
+        )
 
 
 class ReadyExecution(Execution):
