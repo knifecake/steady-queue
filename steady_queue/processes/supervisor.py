@@ -24,7 +24,11 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
     def launch(cls, options: Optional[Configuration.Options] = None) -> None:
         configuration = Configuration(options)
         if not configuration.is_valid:
-            raise ValueError("Invalid configuration")
+            logger.error(
+                "Invalid Steady Queue configuration: %(errors)s",
+                {"errors": "\n".join([e.message for e in configuration.errors])},
+            )
+            sys.exit(1)
 
         return cls(configuration).start()
 
