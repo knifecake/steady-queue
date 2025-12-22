@@ -792,6 +792,12 @@ a few differences which we outline below.
   where higher numbers have higher priority.
 
 
+## Contributing
+
+Contributions in the form of code, documentation, issues or other comments are
+of course welcome. Check [CONTRIBUTING.md](./CONTRIBUTING.md) for guidance on
+how to run the test project and automated tests.
+
 ## License
 
 The package is available as open source under the terms of the [MIT License][MIT].
