@@ -489,10 +489,6 @@ lifecycle of its processes.
 
 Steady Queue uses the standard Python logging module to emit traces on the `steady_queue` logger.
 
-## Errors when enqueueing
-
-TODO
-
 ## Concurrency controls
 
 Steady Queue extends Django Tasks with concurrency controls, that allows you to
@@ -629,15 +625,6 @@ Finally, failed tasks that are automatically or manually retried work in the
 same way as new tasks that get enqueued: they get in the queue for getting an
 open semaphore, and whenever they get it, they'll be run. It doesn't matter if
 they had already gotten an open semaphore in the past.
-
-## Failed tasks and retries
-
-TODO
-
-### Error reporting on tasks
-
-TODO
-
 
 ## Tasks and transactional integrity
 
