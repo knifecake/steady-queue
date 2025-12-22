@@ -40,6 +40,14 @@ class ExecutionQuerySet(models.QuerySet):
 
         return discarded_by_type.get("steady_queue.Job", 0)
 
+    def lock_all_from_jobs(self, jobs: models.QuerySet) -> list:
+        return (
+            self.filter(job_id__in=map(lambda j: j.id, jobs))
+            .order_by("job_id")
+            .select_for_update()
+            .values_list("job_id", flat=True)
+        )
+
 
 class Execution(BaseModel):
     class Meta:
