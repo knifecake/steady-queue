@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
 
+import steady_queue
 from steady_queue.models import (
     BlockedExecution,
     ClaimedExecution,
@@ -355,3 +356,41 @@ class FailedExecutionTestCase(TestCase):
         self.assertEqual(count, 3)
         self.assertEqual(FailedExecution.objects.count(), 0)
         self.assertEqual(ReadyExecution.objects.count(), 3)
+
+
+class ProcessPruningTestCase(TestHelperMixin, TestCase):
+    def test_prune_works(self):
+        old_heartbeat = (
+            timezone.now() - steady_queue.process_alive_threshold - timedelta(minutes=1)
+        )
+
+        Process.objects.create(
+            name="old-worker-1",
+            kind="Worker",
+            pid=11111,
+            hostname="test-host",
+            last_heartbeat_at=old_heartbeat,
+        )
+        Process.objects.create(
+            name="old-worker-2",
+            kind="Worker",
+            pid=22222,
+            hostname="test-host",
+            last_heartbeat_at=old_heartbeat,
+        )
+
+        recent_process = Process.objects.create(
+            name="active-worker",
+            kind="Worker",
+            pid=33333,
+            hostname="test-host",
+            last_heartbeat_at=timezone.now(),
+        )
+
+        self.assertEqual(Process.objects.count(), 3)
+        self.assertEqual(Process.objects.prunable().count(), 2)
+
+        Process.objects.prune()
+
+        self.assertEqual(Process.objects.count(), 1)
+        self.assertEqual(Process.objects.first().id, recent_process.id)

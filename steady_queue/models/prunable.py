@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 
 import steady_queue
@@ -11,12 +12,15 @@ class PrunableQuerySet:
         )
 
     def prune(self):
-        prunable = (
-            self.prunable().select_for_update(skip_locked=True).iterator(chunk_size=50)
-        )
+        with transaction.atomic(using=self.db):
+            prunable = (
+                self.prunable()
+                .select_for_update(skip_locked=True)
+                .iterator(chunk_size=50)
+            )
 
-        for process in prunable:
-            process.prune()
+            for process in prunable:
+                process.prune()
 
 
 class Prunable:

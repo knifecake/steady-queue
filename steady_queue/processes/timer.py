@@ -78,5 +78,5 @@ class TimerTask:
             self.callable()
         except Exception as e:
             logger.exception(
-                "unhandled exception in timer task: %s", str(e), exc_info=False
+                "unhandled exception in timer task: %s", str(e), exc_info=True
             )
