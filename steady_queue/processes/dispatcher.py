@@ -86,8 +86,11 @@ class Dispatcher(Poller):
 
         def expire_semaphores(self):
             with AppExecutor.wrap_in_app_executor():
-                # TODO batch deletes
-                Semaphore.objects.expired().delete()
+                semaphores = Semaphore.objects.expired().iterator(
+                    chunk_size=self.batch_size
+                )
+                for semaphore in semaphores:
+                    semaphore.delete()
 
         def unblock_blocked_executions(self):
             with AppExecutor.wrap_in_app_executor():

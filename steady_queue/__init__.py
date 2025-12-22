@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Optional
 
-VERSION = (0, 1, 1)
+VERSION = (0, 1, 0)
 
 __version__ = ".".join(map(str, VERSION))
 
@@ -18,3 +18,5 @@ clear_finished_jobs_after: timedelta = timedelta(days=1)
 default_concurrency_control_period: timedelta = timedelta(minutes=3)
 
 supervisor_pidfile: Optional[str] = "tmp/pids/steady_queue_supervisor.pid"
+
+database: str = "default"

@@ -17,6 +17,7 @@ class RecurringSchedule:
         ]
         self.scheduled_tasks = Dict()
 
+    @property
     def is_empty(self) -> bool:
         return len(self.configured_tasks) == 0
 

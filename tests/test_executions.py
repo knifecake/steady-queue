@@ -56,9 +56,9 @@ class ReadyExecutionTestCase(TestHelperMixin, TestCase):
         self.assertEqual(ReadyExecution.objects.queued_as("queue2").count(), 1)
 
     def test_in_order_respects_priority_then_job_id(self):
-        """Jobs should be ordered by priority (ascending) then job_id."""
-        job_low = self.create_job_in_queue("default", priority=10)
-        job_high = self.create_job_in_queue("default", priority=1)
+        """Jobs should be ordered by priority (descending) then job_id."""
+        job_low = self.create_job_in_queue("default", priority=1)
+        job_high = self.create_job_in_queue("default", priority=10)
 
         ordered = list(ReadyExecution.objects.in_order())
         self.assertEqual(ordered[0].job_id, job_high.id)
@@ -239,19 +239,20 @@ class ScheduledExecutionTestCase(TestHelperMixin, TestCase):
         self.assertEqual(dispatched, 0)
 
     def test_in_order_respects_scheduled_time_then_priority(self):
-        """Jobs should be ordered by scheduled_at, then priority."""
+        """Jobs should be ordered by scheduled_at, then priority (descending)."""
         earlier = timezone.now() + timedelta(hours=1)
         later = timezone.now() + timedelta(hours=2)
 
-        # Create in reverse order
-        job_later = Job.objects.create(
+        # Create jobs with different scheduled times
+        # Within same scheduled time, higher priority (larger number) comes first
+        job_later_low = Job.objects.create(
             queue_name="default",
             priority=1,
             class_name="tests.dummy.tasks.dummy_task",
             arguments={"arguments": {"args": [], "kwargs": {}}},
             scheduled_at=later,
         )
-        job_earlier = Job.objects.create(
+        job_earlier_high = Job.objects.create(
             queue_name="default",
             priority=10,
             class_name="tests.dummy.tasks.dummy_task",
@@ -259,9 +260,10 @@ class ScheduledExecutionTestCase(TestHelperMixin, TestCase):
             scheduled_at=earlier,
         )
 
+        # Earlier scheduled time takes precedence over priority
         ordered = list(ScheduledExecution.objects.in_order())
-        self.assertEqual(ordered[0].job_id, job_earlier.id)
-        self.assertEqual(ordered[1].job_id, job_later.id)
+        self.assertEqual(ordered[0].job_id, job_earlier_high.id)
+        self.assertEqual(ordered[1].job_id, job_later_low.id)
 
 
 class BlockedExecutionTestCase(TestCase):

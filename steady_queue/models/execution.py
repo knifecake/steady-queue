@@ -7,7 +7,7 @@ from .base import BaseModel
 
 class ExecutionQuerySet(models.QuerySet):
     def in_order(self) -> Self:
-        return self.order_by("priority", "job_id")
+        return self.order_by("-priority", "job_id")
 
     def discard_in_batches(self, batch_size: int = 500) -> int:
         pending = self.count()
@@ -39,6 +39,14 @@ class ExecutionQuerySet(models.QuerySet):
         ).delete()
 
         return discarded_by_type.get("steady_queue.Job", 0)
+
+    def lock_all_from_jobs(self, jobs: models.QuerySet) -> list:
+        return (
+            self.filter(job_id__in=map(lambda j: j.id, jobs))
+            .order_by("job_id")
+            .select_for_update()
+            .values_list("job_id", flat=True)
+        )
 
 
 class Execution(BaseModel):

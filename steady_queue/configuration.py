@@ -2,6 +2,10 @@ from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import Optional
 
+from crontab import CronTab
+from django.core.exceptions import ValidationError
+from django.utils.module_loading import import_string
+
 from steady_queue.processes.base import Base
 
 
@@ -37,12 +41,36 @@ class Configuration:
 
             return configurations
 
+        def clean(self) -> None:
+            self.clean_schedule()
+            self.clean_class_name()
+            self.clean_command()
+
+        def clean_schedule(self):
+            try:
+                CronTab(self.schedule)
+            except ValueError as e:
+                raise ValidationError(f'Invalid schedule "{self.schedule}": {str(e)}')
+
+        def clean_class_name(self):
+            try:
+                import_string(self.class_name)
+            except ImportError as e:
+                raise ValidationError(
+                    f'Invalid class name "{self.class_name}": {str(e)}'
+                )
+
+        def clean_command(self):
+            if self.command is None:
+                return
+
+            raise ValidationError("Command is not yet supported for recurring tasks")
+
     @dataclass
     class Options:
         workers: list["Configuration.Worker"]
         dispatchers: list["Configuration.Dispatcher"]
         recurring_tasks: list["Configuration.RecurringTask"]
-        database: str
         only_work: bool = False
         skip_recurring: bool = False
 
@@ -51,7 +79,6 @@ class Configuration:
             workers: list["Configuration.Worker"] | None = None,
             dispatchers: list["Configuration.Dispatcher"] | None = None,
             recurring_tasks: list["Configuration.RecurringTask"] | None = None,
-            database: str | None = None,
             only_work: bool = False,
             skip_recurring: bool = False,
         ):
@@ -64,13 +91,9 @@ class Configuration:
             if recurring_tasks is None:
                 recurring_tasks = Configuration.RecurringTask.discover()
 
-            if database is None:
-                database = "default"
-
             self.workers = workers
             self.dispatchers = dispatchers
             self.recurring_tasks = recurring_tasks
-            self.database = database
             self.only_work = only_work
             self.skip_recurring = skip_recurring
 
@@ -95,10 +118,14 @@ class Configuration:
 
             raise ValueError(f"Invalid process kind: {self.kind}")
 
+    options: Options
+    errors: list[ValidationError]
+
     def __init__(self, options: Optional[Options] = None):
         if options is None:
             options = self.Options()
         self.options = options
+        self.errors = []
 
     @property
     def configured_processes(self) -> list["Configuration.Process"]:
@@ -135,12 +162,41 @@ class Configuration:
 
     @property
     def is_valid(self):
-        ensure_configured_processes = len(self.configured_processes) > 0
-        ensure_valid_recurring_tasks = True  # TODO
-        ensure_correctly_sized_thread_pool = True  # TODO
+        self.errors = []
+        self.errors.extend(self.validate_configured_processes())
+        self.errors.extend(self.validate_recurring_tasks())
+        self.errors.extend(self.validate_thread_pool())
 
-        return (
-            ensure_configured_processes
-            and ensure_valid_recurring_tasks
-            and ensure_correctly_sized_thread_pool
-        )
+        return len(self.errors) == 0
+
+    def validate_configured_processes(self) -> list[ValidationError]:
+        if len(self.configured_processes) == 0:
+            return [ValidationError("No processes configured")]
+
+        return []
+
+    def validate_recurring_tasks(self) -> list[ValidationError]:
+        if self.skip_recurring:
+            return []
+
+        if len(self.options.recurring_tasks) == 0:
+            return []
+
+        errors = []
+        for task in self.options.recurring_tasks:
+            try:
+                task.clean()
+            except ValidationError as e:
+                errors.append(
+                    ValidationError(f'Invalid recurring task "{task.key}": {e.message}')
+                )
+
+        return errors
+
+    def validate_thread_pool(self) -> list[ValidationError]:
+        # TODO
+        return []
+
+    @property
+    def skip_recurring(self) -> bool:
+        return self.options.skip_recurring or self.options.only_work

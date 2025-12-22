@@ -49,9 +49,11 @@ class Worker(Poller):
         )
 
     def shutdown(self):
+        # NOTE: waiting before threads currently running are done with a timeout
+        # (the equivalent of `wait_for_termination` in Ruby) is not supported by
+        # the executor in our thread pool, so here we're effectively terminating
+        # them immediately.
         self.pool.shutdown()
-        # TODO: self.pool.wait_for_termination(timeout=timedelta(seconds=10))
-
         super().shutdown()
 
     @property

@@ -1,19 +1,21 @@
 from django.db import models, transaction
 
+from steady_queue.models.dispatching import Dispatching
+
 from .execution import Execution, ExecutionQuerySet
 
 
 class FailedExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
-    def retry(self):
-        # TODO: optimize
-        with transaction.atomic(using=self.db):
-            count = self.count()
-            for failed_execution in self.all():
-                failed_execution.retry()
-            return count
+    def retry(self) -> int:
+        return self.model.retry_all(
+            [
+                failed_execution.job
+                for failed_execution in self.select_related("job").all()
+            ]
+        )
 
 
-class FailedExecution(Execution):
+class FailedExecution(Dispatching, Execution):
     class Meta:
         verbose_name = "failed task"
         verbose_name_plural = "failed tasks"
@@ -37,3 +39,9 @@ class FailedExecution(Execution):
             self.job.reset_execution_counters()
             self.job.prepare_for_execution()
             self.delete()
+
+    @classmethod
+    def retry_all(cls, jobs: list) -> int:
+        with transaction.atomic(using=cls.objects.db):
+            job_ids = cls.objects.lock_all_from_jobs(jobs)
+            return cls.dispatch_jobs(job_ids)

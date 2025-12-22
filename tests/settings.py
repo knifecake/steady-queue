@@ -3,6 +3,7 @@ from datetime import timedelta
 
 import environ
 
+import steady_queue
 from steady_queue.configuration import Configuration
 
 env = environ.Env()
@@ -61,6 +62,8 @@ TASKS = {
 }
 
 
+steady_queue.database = "queue"
+
 STEADY_QUEUE = Configuration.Options(
     dispatchers=[
         Configuration.Dispatcher(polling_interval=timedelta(seconds=1), batch_size=500)
@@ -73,7 +76,6 @@ STEADY_QUEUE = Configuration.Options(
             processes=2,
         )
     ],
-    database="queue",
 )
 
 

@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from functools import cached_property
 
 from crontab import CronTab
-from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.module_loading import import_string
@@ -122,21 +121,3 @@ class RecurringTask(UpdatedAtMixin, BaseModel):
     @property
     def previous_time(self) -> datetime:
         return self.parsed_schedule.previous(timezone.now(), return_datetime=True)
-
-    def clean_schedule(self):
-        try:
-            self.parsed_schedule
-        except ValueError as e:
-            raise ValidationError(f'Invalid schedule "{self.schedule}": {str(e)}')
-
-    def clean_class_name(self):
-        try:
-            self.job_class
-        except ImportError as e:
-            raise ValidationError(f'Invalid class name "{self.class_name}": {str(e)}')
-
-    def clean_command(self):
-        if self.command is None:
-            return
-
-        raise ValidationError("Command is not yet supported for recurring tasks")

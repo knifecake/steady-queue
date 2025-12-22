@@ -1,28 +1,15 @@
 from __future__ import annotations
 
-from django.conf import settings
-
-from steady_queue.configuration import Configuration
+import steady_queue
 
 
 def steady_queue_database_alias() -> str:
     """
     Resolve the database alias steady_queue should use.
 
-    Priority:
-    1. settings.STEADY_QUEUE when it is a Configuration.Options instance or has a
-       ``database`` attribute
-    2. Fallback to "default"
+    Returns the value of steady_queue.database (defaults to "default").
     """
-    configured = getattr(settings, "STEADY_QUEUE", None)
-    if isinstance(configured, Configuration.Options):
-        return configured.database
-
-    database_attr = getattr(configured, "database", None)
-    if database_attr:
-        return database_attr
-
-    return "default"
+    return steady_queue.database
 
 
 class SteadyQueueRouter:

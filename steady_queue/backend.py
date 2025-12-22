@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.tasks import Task, TaskResult, TaskResultStatus
+from django.tasks import TaskResult, TaskResultStatus
 from django.tasks.backends.base import BaseTaskBackend
 from django.tasks.signals import task_enqueued
 
@@ -16,10 +16,6 @@ class SteadyQueueBackend(BaseTaskBackend):
     supports_async_task = False
 
     supports_get_result = False
-
-    def validate_task(self, task: Task) -> None:
-        # TODO: do we need to do anything here?
-        super().validate_task(task)
 
     def enqueue(self, task, args: list, kwargs: dict[str, Any]) -> TaskResult:
         from steady_queue.models import Job

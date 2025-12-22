@@ -19,7 +19,6 @@ class Runnable(Supervised):
     def stop(self):
         super().stop()
         self.wake_up()
-        # TODO: join thread
 
     def boot(self):
         self.reset_database_connections()

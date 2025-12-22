@@ -12,6 +12,11 @@ def dummy_task():
 
 
 @task()
+def failing_task():
+    raise Exception("this is a task that always fails")
+
+
+@task()
 def task_with_args(name):
     print(f"hello {name}, from task_with_args")
 
