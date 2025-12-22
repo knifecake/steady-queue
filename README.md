@@ -83,9 +83,9 @@ def tralalero():
     print('tralala')
 ```
 
-- `priority` is a non-negative integer determining the importance of tasks
-  within the same queue. The smaller the value, the higher the priority. The
-  default value is `0`.
+- `priority` is an integer between -100 and 100 determining the importance of
+  tasks within the same queue. The larger the value, the higher the priority.
+  The default value is `0`.
 - `queue_name` is the name of the queue where instances of this task will run.
   If not specified, it defaults to the `default` queue.
 - `backend` is the key of the backend that will be used in the `TASKS`
@@ -95,7 +95,7 @@ def tralalero():
 These attributes can also be modified at runtime with `.using()`:
 
 ```python
-tralalero.using(priority=9, queue_name='low_importance').enqueue()
+tralalero.using(priority=-10, queue_name='low_importance').enqueue()
 ```
 
 ### Running tasks in the future
@@ -252,16 +252,16 @@ polled in the order given, such as for the list `'real_time', 'background'`, no
 tasks will be taken from `background` unless there aren't any more tasks waiting
 in `real_time`.
 
-Steady Queue also supports positive integer priorities when enqueuing tasks. In
-Steady Queue, the smaller the value, the higher the priority. The default is
-`0`.
+Steady Queue supports numeric priorities between -100 and 100 when enqueuing
+tasks, following Django's convention where larger numbers indicate higher
+priority. The default is `0`.
 
 This is useful when you run tasks with different importance or urgency in the
-same queue. Within the same queue, tasks will be picked in order of priority, but
-in a list of queues, the queue order takes precedence, so in the previous
-example with `real_time,background`, tasks in the `real_time` queue will be
-picked before tasks in the `background` queue, even if those in the `background`
-queue have a higher priority (smaller value) set.
+same queue. Within the same queue, tasks will be picked in order of priority
+(higher numbers first), but in a list of queues, the queue order takes
+precedence, so in the previous example with `real_time,background`, tasks in the
+`real_time` queue will be picked before tasks in the `background` queue, even if
+those in the `background` queue have a higher priority (larger value) set.
 
 We recommend not mixing queue order with priorities but either choosing one or
 the other, as that will make task execution order more straightforward for you.
@@ -275,7 +275,7 @@ Queue only does two types of polling queries:
 -- No filtering by queue
 SELECT job_id
 FROM steady_queue_ready_executions
-ORDER BY priority ASC, job_id ASC
+ORDER BY priority DESC, job_id ASC
 LIMIT ?
 FOR UPDATE SKIP LOCKED;
 
@@ -283,7 +283,7 @@ FOR UPDATE SKIP LOCKED;
 SELECT job_id
 FROM steady_queue_ready_executions
 WHERE queue_name = ?
-ORDER BY priority ASC, job_id ASC
+ORDER BY priority DESC, job_id ASC
 LIMIT ?
 FOR UPDATE SKIP LOCKED;
 ```
@@ -614,16 +614,16 @@ general, you should set `duration` in a way that all your tasks would finish
 well under that duration and think of the concurrency maintenance task as a
 failsafe in case something goes wrong.
 
-Tasks are unblocked in order of priority but queue order is not taken into
-account for unblocking tasks. That means that if you have a group of tasks that
-share a concurrency group but are in different queues, or tasks of the same
-class that you enqueue in different queues, the queue order you set for a worker
-is not taken into account when unblocking blocked ones. The reason is that a
-task that runs unblocks the next one, and the task itself doesn't know about a
-particular worker's queue order (you could even have different workers with
-different queue orders), it can only know about priority. Once blocked tasks are
-unblocked and available for polling, they'll be picked up by a worker following
-its queue order.
+Tasks are unblocked in order of priority (higher numbers first) but queue order
+is not taken into account for unblocking tasks. That means that if you have a
+group of tasks that share a concurrency group but are in different queues, or
+tasks of the same class that you enqueue in different queues, the queue order
+you set for a worker is not taken into account when unblocking blocked ones. The
+reason is that a task that runs unblocks the next one, and the task itself
+doesn't know about a particular worker's queue order (you could even have
+different workers with different queue orders), it can only know about priority.
+Once blocked tasks are unblocked and available for polling, they'll be picked up
+by a worker following its queue order.
 
 Finally, failed tasks that are automatically or manually retried work in the
 same way as new tasks that get enqueued: they get in the queue for getting an
@@ -785,6 +785,11 @@ a few differences which we outline below.
   because doing so requires introducing an external dependency.
 - Steady Queue does not expose rich instrumentation like Solid Queue does due to
   the lack of a framework-native equivalent to `ActiveSupport::Notifications`.
+- **Priority ordering:** Steady Queue follows Django's convention where larger
+  numbers indicate higher priority (e.g., a task with priority 10 runs before
+  priority 0), whereas Solid Queue uses the inverse (smaller numbers = higher
+  priority). This aligns with [Django's task convention on priorities](django-task-priorities),
+  where higher numbers have higher priority.
 
 
 ## License
@@ -798,3 +803,4 @@ The package is available as open source under the terms of the [MIT License][MIT
 [MIT]: https://opensource.org/licenses/MIT
 [transaction-on-commit]: https://docs.djangoproject.com/en/dev/topics/db/transactions/#performing-actions-after-commit
 [functools-partial]: https://docs.python.org/3/library/functools.html#functools.partial
+[django-task-priorities]: https://docs.djangoproject.com/en/dev/ref/tasks/#django.tasks.Task.priority

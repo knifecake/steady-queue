@@ -7,7 +7,7 @@ from .base import BaseModel
 
 class ExecutionQuerySet(models.QuerySet):
     def in_order(self) -> Self:
-        return self.order_by("priority", "job_id")
+        return self.order_by("-priority", "job_id")
 
     def discard_in_batches(self, batch_size: int = 500) -> int:
         pending = self.count()

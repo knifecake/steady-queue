@@ -13,7 +13,7 @@ class ScheduledExecutionQuerySet(models.QuerySet):
         return self.filter(scheduled_at__lte=timezone.now())
 
     def in_order(self) -> Self:
-        return self.order_by("scheduled_at", "priority", "job_id")
+        return self.order_by("scheduled_at", "-priority", "job_id")
 
     def next_batch(self, batch_size: int) -> Self:
         return self.due().in_order()[:batch_size]

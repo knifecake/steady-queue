@@ -35,10 +35,10 @@
 - [x] Concurrency controls
 - [x] Signals on tasks: enqueue, pre/post perform
 - [x] Tests
-- [x] Support for a separate database
-- [ ] Make priorities align with Django's documentation
+- [x] Support for a separate database
+- [x] Make priorities align with Django's documentation
 - [ ] Lifecycle hooks on processes
-- [ ] Django checks
+- [ ] Django checks
 - [ ] Retry on database is locked
 - [ ] Django admin permissions
 - [ ] Contributing
