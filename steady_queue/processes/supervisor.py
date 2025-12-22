@@ -45,7 +45,6 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
     def boot(self) -> None:
         super().boot()
         self.fail_orphaned_executions()
-        # TODO: sync std streams
 
     def start_processes(self) -> None:
         for process in self.configuration.configured_processes:

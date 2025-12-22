@@ -65,5 +65,5 @@ class Scheduler(Runnable, Interruptible, Registrable, Base):
         self.recurring_schedule.unschedule_tasks()
 
     @property
-    def is_all_work_completed(self):
-        return self.recurring_schedule is None  # TODO
+    def is_all_work_completed(self) -> bool:
+        return self.recurring_schedule.is_empty
