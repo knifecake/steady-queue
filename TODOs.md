@@ -37,10 +37,10 @@
 - [x] Tests
 - [x] Support for a separate database
 - [x] Make priorities align with Django's documentation
+- [x] Contributing
+- [x] Readme
 - [ ] Lifecycle hooks on processes
 - [ ] Django checks
 - [ ] Retry on database is locked
 - [ ] Django admin permissions
-- [ ] Contributing
-- [ ] Readme
 - [ ] Publish to PyPI
