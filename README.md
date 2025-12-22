@@ -411,13 +411,12 @@ DATABASES = {
 }
 ```
 
-2. Tell Steady Queue which alias to use (via options) and register its database
-   router:
+2. Tell Steady Queue which alias to use and register its database router:
 
-```
-from steady_queue.configuration import Configuration
+```python
+import steady_queue
 
-STEADY_QUEUE = Configuration.Options(database="queue")
+steady_queue.database = "queue"
 DATABASE_ROUTERS = ["steady_queue.db_router.SteadyQueueRouter"]
 ```
 
@@ -444,6 +443,9 @@ steady_queue.process_heartbeat_interval = timedelta(minutes=5)
 
 There are several settings that control how Steady Queue works that you can set as well:
 
+- `database`: the database alias that Steady Queue will use to store its
+  tables—defaults to `"default"`. See the [database
+  configuration](#database-configuration) section for more details.
 - `process_heartbeat_interval`:  the heartbeat interval that all processes will
   follow—defaults to 60 seconds.
 - `process_alive_threshold`: how long to wait until a process is considered dead

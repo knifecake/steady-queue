@@ -68,12 +68,6 @@ class DefaultConfigurationTestCase(SimpleTestCase):
 
         self.assertEqual(config.options.dispatchers[0].batch_size, 500)
 
-    def test_default_database_is_default(self):
-        """Default database configuration is 'default'."""
-        config = Configuration()
-
-        self.assertEqual(config.options.database, "default")
-
 
 class ConfigurationProcessesTestCase(SimpleTestCase):
     """Tests for configuration process management."""
