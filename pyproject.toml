@@ -3,6 +3,7 @@ name = "steady-queue"
 dynamic = ["version"]
 description = "An asynchronous task library for Django that supports delayed tasks, concurrency controls, recurring tasks, pausing queues, numeric priorities per task, priorities by queue order and bulk enqueueing."
 readme = "README.md"
+license = "MIT"
 authors = [
     { name = "Elias Hernandis", email = "elias@hernandis.me" }
 ]
@@ -14,7 +15,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
 ]
 dependencies = [
