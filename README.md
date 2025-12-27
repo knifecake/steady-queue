@@ -226,8 +226,8 @@ Here's an overview of the different options:
   You can also provide a prefix with a wildcard to match queues starting with a
   prefix. For example adding `staging*` to the queues list will create a worker
   fetching tasks from all queues starting with `staging`. The wildcard `*` is
-  only allowed on it's own or at the end of a queue name; you can't specify
-  queue names such as `*_some_queue`. These will be ignored.
+  only allowed on its own or at the end of a queue name; you can't specify queue
+  names such as `*_some_queue`. These will be ignored.
 
   Finally you can combine prefixes with exact names, like `['staging*',
   'background']`, and the behavior with respect to order will be the same as
