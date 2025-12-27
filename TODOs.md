@@ -39,8 +39,7 @@
 - [x] Make priorities align with Django's documentation
 - [x] Contributing
 - [x] Readme
+- [x] Publish to PyPI
 - [ ] Lifecycle hooks on processes
 - [ ] Django checks
-- [ ] Retry on database is locked
 - [ ] Django admin permissions
-- [ ] Publish to PyPI

@@ -1,21 +1,35 @@
 # Steady Queue
 
-Steady Queue is a port to Django of the excellent [Solid
-Queue][solid-queue-github] DB-based queueing backend for Ruby on Rails. The goal
-of this port has been to keep the internals as close as possible to a direct
-translation from Ruby to Python, while adapting the external interfaces to be
-idiomatic in Django. Read more on the [differences between Steady Queue and
-Solid Queue below](#deviations-from-solid-queue).
+Steady Queue is a database-backed task backend for Django 6.0+. It is a port to
+Python of the excellent [Solid Queue](solid-queue-github) backend for Ruby on
+Rails.
 
-Steady queue exposes a task backend that is compatible with the background
-worker specification outlined in [DEP 0014][DEP0014]. In addition to task
-enqueueing and processing, it supports delayed tasks, concurrency controls,
-recurring tasks, pausing queues, numeric priorities per task, priorities by
-queue order and bulk enqueueing.
+It is compatible with the [`django.tasks` interface](django-tasks-docs),
+allowing you to manage background jobs using only your existing relational
+database. By leveraging `SELECT FOR UPDATE SKIP LOCKED`, Steady Queue provides a
+high-performance, concurrency-safe queuing system without the operational
+overhead of Redis or RabbitMQ.
 
-Steady Queue can be used with SQL databases such as MySQL, PostgreSQL or SQLite,
-and it leverages the `FOR UPDATE SKIP LOCKED` clause, if available, to avoid
-blocking and waiting on locks when polling tasks.
+## Core features
+
+- **Task enqueueing and processing.** Using the standard `@task` decorator
+  interface introduced in [DEP 0014](DEP0014) with support for queue selection,
+  delayed tasks and numeric priorities.
+- **No extra infrastructure.** Steady Queue can be used with SQL databases such
+  as MySQL, PostgreSQL or SQLite, and it leverages the `FOR UPDATE SKIP LOCKED`
+  clause, if available, to avoid blocking and waiting on locks when polling
+  tasks.
+- **Cron-style recurring tasks.** Define schedules directly in your code using
+  decorators.
+- **Concurrency controls.** Limit how many instances of a specific task can run
+  simultaneously.
+- **Operational control and visibility**: pause and resume queues, inspect tasks
+  and retry or discard failed ones directly from the Django admin interface.
+- **A single dependency** on the crontab library to parse async task schedule
+  definitions.
+
+The database backend exposed by Steady Queue **doesn't support result fetching
+or async task enqueueing**.
 
 ## Installation
 
@@ -743,10 +757,11 @@ guarantee applies as long as you keep tasks around.
 
 ## Deviations from Solid Queue
 
-The implementation of the task backend is largely a direct translation from Ruby
-on Rails to Django. Code organization in classes and mixins, method names,
-database field names and naming conventions are mostly untouched, but there are
-a few differences which we outline below.
+The goal of this port has been to keep the internals as close as possible to a
+direct translation from Ruby to Python, while adapting the external interfaces
+to be idiomatic in Django. Code organization in classes and mixins, method
+names, database field names and naming conventions are mostly untouched, but
+there are a few differences which we outline below.
 
 - The ORM is of course changed from Active Record to the Django ORM.
   - Class methods in Rails models generally become model manager methods under
@@ -796,4 +811,5 @@ The package is available as open source under the terms of the [MIT License][MIT
 [MIT]: https://opensource.org/licenses/MIT
 [transaction-on-commit]: https://docs.djangoproject.com/en/dev/topics/db/transactions/#performing-actions-after-commit
 [functools-partial]: https://docs.python.org/3/library/functools.html#functools.partial
+[django-tasks-docs]: https://docs.djangoproject.com/en/dev/ref/tasks/
 [django-task-priorities]: https://docs.djangoproject.com/en/dev/ref/tasks/#django.tasks.Task.priority
