@@ -14,7 +14,7 @@ class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
         jobs = [
             self.model(job=job, **self.model.attributes_from_job(job)) for job in jobs
         ]
-        return self.bulk_create(jobs)  # TODO: conflicts?
+        return self.bulk_create(jobs)
 
     def claim(self, queue_list, limit, process_id) -> list[ClaimedExecution]:
         scoped_relations = QueueSelector(

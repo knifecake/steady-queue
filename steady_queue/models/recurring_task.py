@@ -97,16 +97,7 @@ class RecurringTask(UpdatedAtMixin, BaseModel):
         return self.recurring_executions.max("run_at")
 
     def enqueue(self, run_at: datetime):
-        if self.is_using_steady_queue_adapter:
-            return self.enqueue_and_record(run_at)
-        else:
-            raise NotImplementedError
-
-        # TODO: error handling
-
-    @property
-    def is_using_steady_queue_adapter(self) -> bool:
-        return True  # TODO: implement
+        return self.enqueue_and_record(run_at)
 
     def enqueue_and_record(self, run_at: datetime):
         with transaction.atomic(using=self._state.db):

@@ -165,7 +165,6 @@ class Configuration:
         self.errors = []
         self.errors.extend(self.validate_configured_processes())
         self.errors.extend(self.validate_recurring_tasks())
-        self.errors.extend(self.validate_thread_pool())
 
         return len(self.errors) == 0
 
@@ -192,10 +191,6 @@ class Configuration:
                 )
 
         return errors
-
-    def validate_thread_pool(self) -> list[ValidationError]:
-        # TODO
-        return []
 
     @property
     def skip_recurring(self) -> bool:

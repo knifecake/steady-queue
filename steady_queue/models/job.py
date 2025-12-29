@@ -4,19 +4,14 @@ from django.db import models
 from django.utils import timezone
 
 from steady_queue.models.base import BaseModel, UpdatedAtMixin
+from steady_queue.models.clearable import ClearableQuerySet
 from steady_queue.models.executable import Executable, ExecutableQuerySet
 from steady_queue.task import SteadyQueueTask
 
 
-class JobQuerySet(ExecutableQuerySet, models.QuerySet):
+class JobQuerySet(ExecutableQuerySet, ClearableQuerySet, models.QuerySet):
     def enqueue(self, task: SteadyQueueTask, args: list, kwargs: dict):
-        try:
-            return self.create(
-                **self.model.attributes_from_django_task(task, args, kwargs)
-            )
-        except Exception as e:
-            # TODO: enqueue error
-            raise e
+        return self.create(**self.model.attributes_from_django_task(task, args, kwargs))
 
 
 class Job(Executable, UpdatedAtMixin, BaseModel):
