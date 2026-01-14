@@ -1,10 +1,10 @@
 # Steady Queue
 
 Steady Queue is a database-backed task backend for Django 6.0+. It is a port to
-Python of the excellent [Solid Queue](solid-queue-github) backend for Ruby on
+Python of the excellent [Solid Queue][solid-queue-github] backend for Ruby on
 Rails.
 
-It is compatible with the [`django.tasks` interface](django-tasks-docs),
+It is compatible with the [`django.tasks` interface][django-tasks-docs],
 allowing you to manage background jobs using only your existing relational
 database. By leveraging `SELECT FOR UPDATE SKIP LOCKED`, Steady Queue provides a
 high-performance, concurrency-safe queuing system without the operational
@@ -13,7 +13,7 @@ overhead of Redis or RabbitMQ.
 ## Core features
 
 - **Task enqueueing and processing.** Using the standard `@task` decorator
-  interface introduced in [DEP 0014](DEP0014) with support for queue selection,
+  interface introduced in [DEP 0014][DEP0014] with support for queue selection,
   delayed tasks and numeric priorities.
 - **No extra infrastructure.** Steady Queue can be used with SQL databases such
   as MySQL, PostgreSQL or SQLite, and it leverages the `FOR UPDATE SKIP LOCKED`
@@ -658,7 +658,7 @@ app's.
 An option which doesn't rely on transactional integrity is to defer the
 enqueueing of a task inside a database transaction until that transaction
 successfully commits. This can be achieved using the
-[`transaction.on_commit`](transaction-on-commit) hook made available by Django:
+[`transaction.on_commit`][transaction-on-commit] hook made available by Django:
 
 ```python
 from django.db import transaction
@@ -673,7 +673,7 @@ def sign_up():
 ```
 
 Notice how callbacks will not be passed any arguments, but you can bind them
-with [`functools.partial`](functools-partial).
+with [`functools.partial`][functools-partial].
 
 Using this option, you can also use Steady Queue in the same database as your
 app but not rely on transactional integrity.
@@ -682,7 +682,7 @@ If you don't use this option but still want to make sure you're not
 inadvertently relying on transactional integrity, you can make sure that:
 
 - Your tasks relying on specific data are always enqueued on [`on_commit`
-  callbacks](transaction-on-commit) or otherwise from a place where you're
+  callbacks][transaction-on-commit] or otherwise from a place where you're
   certain that whatever data the task will use has been committed to the
   database before the task is enqueued.
 - Or, you configure a different database for Steady Queue, even if it's the same
@@ -705,7 +705,7 @@ def ballerina():
 ```
 
 - The `schedule` parameter is a crontab string. Anything that is understood by
-  the [crontab][contrab] library can be passed in here.
+  the [crontab][crontab] library can be passed in here.
 - The `key` parameter must be a unique identifier for this recurring
   configuration.
 - Recurring tasks can also take arguments which can be configured together with
@@ -790,7 +790,7 @@ there are a few differences which we outline below.
 - **Priority ordering:** Steady Queue follows Django's convention where larger
   numbers indicate higher priority (e.g., a task with priority 10 runs before
   priority 0), whereas Solid Queue uses the inverse (smaller numbers = higher
-  priority). This aligns with [Django's task convention on priorities](django-task-priorities),
+  priority). This aligns with [Django's task convention on priorities][django-task-priorities],
   where higher numbers have higher priority.
 
 
@@ -813,3 +813,4 @@ The package is available as open source under the terms of the [MIT License][MIT
 [functools-partial]: https://docs.python.org/3/library/functools.html#functools.partial
 [django-tasks-docs]: https://docs.djangoproject.com/en/dev/ref/tasks/
 [django-task-priorities]: https://docs.djangoproject.com/en/dev/ref/tasks/#django.tasks.Task.priority
+[crontab]: https://pypi.org/project/crontab/
