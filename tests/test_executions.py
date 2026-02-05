@@ -14,7 +14,7 @@ from steady_queue.models import (
     ScheduledExecution,
     Semaphore,
 )
-from tests.dummy.tasks import dummy_task, limited_task
+from tests.dummy.tasks import dummy_task, limited_task, limited_task_with_lambda_key
 
 
 class TestHelperMixin:
@@ -323,6 +323,47 @@ class BlockedExecutionTestCase(TestCase):
         )
 
         self.assertEqual(BlockedExecution.objects.expired().count(), 1)
+
+
+class LambdaConcurrencyKeyTestCase(TestCase):
+    """Tests for lambda-based concurrency keys."""
+
+    def test_lambda_concurrency_key_is_computed_from_args(self):
+        """Lambda concurrency key should be computed from task arguments."""
+        job = Job.objects.enqueue(
+            limited_task_with_lambda_key, [42], {"message": "test"}
+        )
+        job.refresh_from_db()
+
+        self.assertEqual(job.concurrency_key, "account_42")
+
+    def test_lambda_concurrency_key_blocks_same_key(self):
+        """Tasks with the same computed key should block each other."""
+        job1 = Job.objects.enqueue(limited_task_with_lambda_key, [100], {})
+        job2 = Job.objects.enqueue(limited_task_with_lambda_key, [100], {})
+
+        job1.refresh_from_db()
+        job2.refresh_from_db()
+
+        # First job should be ready
+        self.assertEqual(ReadyExecution.objects.filter(job=job1).count(), 1)
+        # Second job with same key should be blocked
+        self.assertEqual(BlockedExecution.objects.filter(job=job2).count(), 1)
+        self.assertEqual(job2.blocked_execution.concurrency_key, "account_100")
+
+    def test_lambda_concurrency_key_allows_different_keys(self):
+        """Tasks with different computed keys should not block each other."""
+        job1 = Job.objects.enqueue(limited_task_with_lambda_key, [100], {})
+        job2 = Job.objects.enqueue(limited_task_with_lambda_key, [200], {})
+
+        job1.refresh_from_db()
+        job2.refresh_from_db()
+
+        # Both should be ready since they have different keys
+        self.assertEqual(ReadyExecution.objects.filter(job=job1).count(), 1)
+        self.assertEqual(ReadyExecution.objects.filter(job=job2).count(), 1)
+        self.assertEqual(job1.concurrency_key, "account_100")
+        self.assertEqual(job2.concurrency_key, "account_200")
 
 
 class FailedExecutionTestCase(TestCase):

@@ -57,3 +57,9 @@ def dummy_recurring_task():
 @task()
 def dummy_recurring_task_2():
     print("dummy recurring task 2")
+
+
+@limits_concurrency(key=lambda account_id, **kwargs: f"account_{account_id}")
+@task()
+def limited_task_with_lambda_key(account_id: int, message: str = "hello"):
+    print(f"limited task for account {account_id}: {message}")

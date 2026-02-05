@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Callable, Optional, Union
 
 from django.tasks import Task, TaskResult
 from django.utils import timezone, translation
@@ -18,7 +18,7 @@ class SteadyQueueTask(Task):
     # For backwards compatibility with previous versions of django_tasks
     enqueue_on_commit: Optional[bool] = None
 
-    concurrency_key: Optional[str] = None
+    concurrency_key: Optional[Union[str, Callable[..., str]]] = None
     concurrency_limit: Optional[int] = None
     concurrency_duration: Optional[timezone.timedelta] = None
     concurrency_group: Optional[str] = None
