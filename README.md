@@ -28,8 +28,18 @@ overhead of Redis or RabbitMQ.
 - **A single dependency** on the crontab library to parse async task schedule
   definitions.
 
-The database backend exposed by Steady Queue **doesn't support result fetching
-or async task enqueueing**.
+### Limitations
+
+The database backend exposed by Steady Queue doesn't support the following options defined by the Django task backend interface.
+
+- **Async task enqueueing is not supported.**
+- **Result fetching is not supported,** i.e. running `task = greet.enqueue();
+  result = task.return_value` will result in an error (even if the task has
+  completed processing). Instead, we recommend saving the results directly on
+  your database or file storage system if they need to be kept around.
+
+The Steady Queue backend advertises these limitations by [setting the
+corresponding flags][django-tasks-flags] on its backend.
 
 ## Installation
 
@@ -811,6 +821,7 @@ The package is available as open source under the terms of the [MIT License][MIT
 [MIT]: https://opensource.org/licenses/MIT
 [transaction-on-commit]: https://docs.djangoproject.com/en/dev/topics/db/transactions/#performing-actions-after-commit
 [functools-partial]: https://docs.python.org/3/library/functools.html#functools.partial
+[django-tasks-flags]: https://docs.djangoproject.com/en/dev/ref/tasks/#feature-flags
 [django-tasks-docs]: https://docs.djangoproject.com/en/dev/ref/tasks/
 [django-task-priorities]: https://docs.djangoproject.com/en/dev/ref/tasks/#django.tasks.Task.priority
 [crontab]: https://pypi.org/project/crontab/
