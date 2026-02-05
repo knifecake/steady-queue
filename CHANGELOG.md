@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.3 - 2026-01-05
+
+**Fixed:**
+
+- Properly handle callable keys for concurrency-controlled tasks (#14).
+- More explicitly clarify the limitations of the backend, namely no support for
+  result fetching or async enqueueing (#12).
+
 ## v0.1.2 - 2025-12-29
 
 **Fixed:**
