@@ -61,13 +61,17 @@ class Job(Executable, UpdatedAtMixin, BaseModel):
     def attributes_from_django_task(
         cls, task: SteadyQueueTask, args: list, kwargs: dict
     ):
+        concurrency_key = task.concurrency_key
+        if callable(concurrency_key):
+            concurrency_key = concurrency_key(*args, **kwargs)
+
         return {
             "queue_name": task.queue_name or cls.DEFAULT_QUEUE_NAME,
             "priority": task.priority or cls.DEFAULT_PRIORITY,
             "scheduled_at": task.run_after or timezone.now(),
             "class_name": task.module_path,
             "arguments": task.serialize(args, kwargs),
-            "concurrency_key": task.concurrency_key,
+            "concurrency_key": concurrency_key,
         }
 
     def __str__(self):

@@ -1,13 +1,13 @@
 from dataclasses import replace
 from datetime import timedelta
-from typing import Optional
+from typing import Callable, Optional, Union
 
 import steady_queue
 from steady_queue.task import SteadyQueueTask
 
 
 def limits_concurrency(
-    key: str,
+    key: Union[str, Callable[..., str]],
     to: int = 1,
     duration: Optional[timedelta] = None,
     group: Optional[str] = None,
