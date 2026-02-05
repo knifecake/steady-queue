@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.4 - 2026-02-06
+
+**Fixed:**
+
+- Fixes a bug where enqueueing tasks that would be blocked failed due to status
+  not being able to be reported (#18).
+
 ## v0.1.3 - 2026-02-05
 
 **Fixed:**
