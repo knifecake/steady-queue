@@ -122,6 +122,7 @@ class Executable(ConcurrencyControls, Schedulable, Retryable):
             or getattr(self, "claimed_execution", None)
             or getattr(self, "failed_execution", None)
             or getattr(self, "scheduled_execution", None)
+            or getattr(self, "blocked_execution", None)
         )
 
     def save(self, *args, **kwargs):
