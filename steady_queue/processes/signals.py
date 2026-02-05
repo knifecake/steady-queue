@@ -9,6 +9,7 @@ logger = logging.getLogger("steady_queue")
 class Signals:
     SIGNALS = (signal.SIGQUIT, signal.SIGINT, signal.SIGTERM)
     signal_queue: Optional[list] = None
+    is_supervising: bool = False
 
     def boot(self):
         self.register_signal_handlers()
@@ -22,8 +23,11 @@ class Signals:
         self.signal_queue = []
 
         def trap(sig, frame):
-            self.signal_queue.append(sig)
-            self.interrupt()
+            if self.is_supervising:
+                self.signal_queue.append(sig)
+                self.interrupt()
+            else:
+                raise SystemExit(1)
 
         for sig in self.SIGNALS:
             signal.signal(sig, trap)
