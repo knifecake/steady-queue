@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.5 - TBD
+
+**Added:**
+
+- Explicit support for Python 3.14
+
 ## v0.1.4 - 2026-02-06
 
 **Fixed:**
