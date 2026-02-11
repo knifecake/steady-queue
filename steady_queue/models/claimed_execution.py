@@ -20,7 +20,7 @@ class ClaimedExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
         ]
         self.bulk_create(claimed_executions)
 
-        return self.filter(job_id__in=job_ids)
+        return self.filter(job_id__in=job_ids, process_id=process_id)
 
     def release_all(self):
         for execution in self.all():
