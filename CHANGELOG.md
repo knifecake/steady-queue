@@ -6,6 +6,11 @@
 
 - Explicit support for Python 3.14
 
+**Fixed:**
+
+- Fixed a bug where the supervisor wouldn't respond to SIGINT while booting if
+  Django was waiting on the database connection pool (#16).
+
 ## v0.1.4 - 2026-02-06
 
 **Fixed:**
