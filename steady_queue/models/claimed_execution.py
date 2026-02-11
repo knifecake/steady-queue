@@ -70,6 +70,12 @@ class ClaimedExecution(Execution):
     def unblock_next_job(self):
         self.job.unblock_next_blocked_job()
 
+    def release(self):
+        """Release a claimed execution back to the ready queue."""
+        with transaction.atomic(using=self._state.db):
+            self.job.dispatch_bypassing_concurrency_limits()
+            self.delete()
+
     def perform(self):
         logger.debug("performing claimed execution for job %s", self.job_id)
         task = SteadyQueueTask.deserialize(self.job.arguments)

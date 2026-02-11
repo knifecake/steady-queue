@@ -30,4 +30,4 @@ class Maintenance:
     def prune_dead_processes(self):
         logger.debug("pruning dead processes")
         with AppExecutor.wrap_in_app_executor():
-            Process.objects.exclude(pk=self.process.pk).prune()
+            Process.objects.prune(excluding=self.process)

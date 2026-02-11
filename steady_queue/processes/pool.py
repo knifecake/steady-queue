@@ -13,15 +13,21 @@ logger = logging.getLogger("steady_queue")
 class Pool:
     size: int
 
-    def __init__(self, size: int, on_idle: Callable):
+    def __init__(self, size: int, on_idle: Callable, worker_name: str = None):
         self.size = size
         self.on_idle = on_idle
+        self.worker_name = worker_name
         self.available_threads = AtomicInteger(size)
         self.mutex = Lock()
         self.executor = ThreadPoolExecutor(max_workers=size)
 
     def post(self, execution: ClaimedExecution):
         self.available_threads.decrement()
+
+        # Capture job metadata before posting to the thread pool, since the
+        # execution record is deleted from the DB during perform().
+        job_id = execution.job_id
+        class_name = execution.job.class_name
 
         def wrapped_execution():
             try:
@@ -30,9 +36,9 @@ class Pool:
                     logger.info(
                         "%(worker)s completed job %(job_id)s %(class_name)s",
                         {
-                            "worker": execution.process.name,
-                            "job_id": execution.job_id,
-                            "class_name": execution.job.class_name,
+                            "worker": self.worker_name,
+                            "job_id": job_id,
+                            "class_name": class_name,
                         },
                     )
             finally:
