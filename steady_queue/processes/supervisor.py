@@ -41,9 +41,15 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
 
     def start(self) -> None:
         logger.info("starting supervisor with PID %(pid)d", {"pid": self.pid})
-        self.boot()
-        self.start_processes()
-        self.launch_maintenance_task()
+        try:
+            self.boot()
+            self.start_processes()
+            self.launch_maintenance_task()
+        except SystemExit:
+            logger.info("supervisor interrupted during boot, shutting down")
+            self.restore_default_signal_handlers()
+            self.delete_pidfile()
+            return
         self.supervise()
 
     def boot(self) -> None:
@@ -55,6 +61,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
             self.start_process(process)
 
     def supervise(self):
+        self.is_supervising = True
         try:
             while True:
                 if self.is_stopped:
