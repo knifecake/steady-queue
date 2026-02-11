@@ -17,9 +17,7 @@ class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
         return self.bulk_create(jobs)
 
     def claim(self, queue_list, limit, process_id) -> list[ClaimedExecution]:
-        scoped_relations = QueueSelector(
-            queue_list, self.model.objects
-        ).scoped_relations()
+        scoped_relations = QueueSelector(queue_list, self).scoped_relations()
 
         claimed: list[ClaimedExecution] = []
         for relation in scoped_relations:
@@ -29,9 +27,9 @@ class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
 
         return claimed
 
-    def select_and_lock(self, process_id, limit) -> models.QuerySet:
+    def select_and_lock(self, process_id, limit) -> list[ClaimedExecution]:
         if limit <= 0:
-            return self.none()
+            return []
 
         with transaction.atomic(using=self.db):
             candidates = self.select_candidates(limit)
@@ -45,19 +43,23 @@ class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
             .only("id", "job_id")[:limit]
         )
 
-    def lock_candidates(self, process_id):
-        from steady_queue.models.claimed_execution import ClaimedExecution
+    def lock_candidates(self, process_id) -> list[ClaimedExecution]:
+        executions = list(self)
+        if len(executions) == 0:
+            return []
 
-        claimed_executions = list(
-            ClaimedExecution.objects.claiming(
-                self.values_list("job_id", flat=True), process_id
+        claimed = list(
+            ClaimedExecution.objects.using(self.db).claiming(
+                [ex.job_id for ex in executions], process_id
             )
         )
 
-        for claimed in claimed_executions:
-            self.model.objects.filter(job_id=claimed.job_id).delete()
+        claimed_job_ids = {ex.job_id for ex in claimed}
+        ids_to_delete = [ex.id for ex in executions if ex.job_id in claimed_job_ids]
 
-        return claimed_executions
+        self.model.objects.using(self.db).filter(id__in=ids_to_delete).delete()
+
+        return claimed
 
     def aggregated_count_across_queues(self, queues: list[str]) -> int:
         return sum(
