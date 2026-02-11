@@ -68,6 +68,9 @@ class Registrable(Base):
         logger.debug("stopped heartbeat for %s", self.name)
 
     def heartbeat(self):
+        if self.process is None:
+            return
+
         with AppExecutor.wrap_in_app_executor():
             try:
                 logger.debug("heartbeat from %s", self.name)

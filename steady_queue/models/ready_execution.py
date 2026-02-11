@@ -17,6 +17,9 @@ class ReadyExecutionQuerySet(ExecutionQuerySet, models.QuerySet):
         return self.bulk_create(jobs)
 
     def claim(self, queue_list, limit, process_id) -> list[ClaimedExecution]:
+        if process_id is None:
+            return []
+
         scoped_relations = QueueSelector(queue_list, self).scoped_relations()
 
         claimed: list[ClaimedExecution] = []

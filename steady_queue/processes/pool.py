@@ -27,14 +27,6 @@ class Pool:
             try:
                 with AppExecutor.wrap_in_app_executor():
                     execution.perform()
-                    logger.info(
-                        "%(worker)s completed job %(job_id)s %(class_name)s",
-                        {
-                            "worker": execution.process.name,
-                            "job_id": execution.job_id,
-                            "class_name": execution.job.class_name,
-                        },
-                    )
             finally:
                 self.available_threads.increment()
                 with self.mutex:

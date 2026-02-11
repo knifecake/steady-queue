@@ -60,11 +60,21 @@ class Process(Executor, Prunable, BaseModel):
             self.save()
 
     def deregister(self, pruned=False):
+        # Collect supervisees before delete, since delete cascades SET_NULL
+        # on the supervisor FK, making self.supervisees.all() return nothing.
         if not (pruned or self.is_supervised):
-            for sup in self.supervisees.all():
-                sup.deregister()
+            supervisees = list(self.supervisees.all())
+        else:
+            supervisees = []
 
         self.delete()
+
+        for sup in supervisees:
+            sup.deregister()
+
+    def delete(self, *args, **kwargs):
+        self.release_all_claimed_executions()
+        return super().delete(*args, **kwargs)
 
     @property
     def is_supervised(self):

@@ -11,13 +11,13 @@ class PrunableQuerySet:
             last_heartbeat_at__lt=timezone.now() - steady_queue.process_alive_threshold
         )
 
-    def prune(self):
+    def prune(self, excluding=None):
         with transaction.atomic(using=self.db):
-            prunable = (
-                self.prunable()
-                .select_for_update(skip_locked=True)
-                .iterator(chunk_size=50)
-            )
+            qs = self.prunable()
+            if excluding is not None:
+                qs = qs.exclude(pk=excluding.pk)
+
+            prunable = qs.select_for_update(skip_locked=True).iterator(chunk_size=50)
 
             for process in prunable:
                 process.prune()
