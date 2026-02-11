@@ -28,11 +28,6 @@ jobs:
         run: |
           uv sync
 
-      - name: Run mypy
-        run: |
-          uv run mypy -p steady_queue
-        continue-on-error: true
-
       - name: Run tests
         run: |
           tests/bin/run-docker-postgres
