@@ -64,15 +64,15 @@ django_settings_module = "tests.settings"
 
 [dependency-groups]
 dev = [
-    "coverage>=7.10.2",
+    "coverage>=7.13.4",
     "django-environ>=0.12.0",
     "django-stubs-ext>=5.2.2",
     "django-stubs[compatible-mypy]>=5.2.2",
     "ipython>=9.4.0",
     "mypy>=1.17.1",
-    "pre-commit>=4.0.1",
-    "psycopg[binary,pool]>=3.2.6",
-    "ruff>=0.11.6",
+    "pre-commit>=4.5.1",
+    "psycopg[binary,pool]>=3.3.2",
+    "ruff>=0.15.0",
     "ty>=0.0.1a17",
     "types-python-crontab>=3.3.0.20250715",
 ]
