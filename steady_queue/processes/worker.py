@@ -16,9 +16,12 @@ class Worker(Poller):
 
     def __init__(self, options: Configuration.Worker):
         self.queues = options.queues
-        self.pool = Pool(options.threads, on_idle=lambda: self.wake_up())
 
         super().__init__(polling_interval=options.polling_interval)
+
+        self.pool = Pool(
+            options.threads, on_idle=lambda: self.wake_up(), worker_name=self.name
+        )
 
     @property
     def metadata(self):

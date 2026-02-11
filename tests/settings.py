@@ -143,7 +143,7 @@ LOGGING = {
         },
         "steady_queue": {
             "handlers": ["console"],
-            "level": "INFO",
+            "level": "WARNING",
             "propagate": False,
         },
     },
