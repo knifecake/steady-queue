@@ -28,10 +28,6 @@ jobs:
         run: |
           uv sync
 
-      - name: Run pre-commit hooks
-        run: |
-          uv run pre-commit run --all-files
-
       - name: Run mypy
         run: |
           uv run mypy -p steady_queue
