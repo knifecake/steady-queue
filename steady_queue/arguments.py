@@ -1,3 +1,4 @@
+from datetime import date, datetime, time, timedelta
 from typing import Any
 
 from django.db import models
@@ -14,6 +15,10 @@ class SerializationError(ValueError):
 class Arguments:
     HASH_KEY = "__sq_hash__"
     MODEL_KEY = "__sq_model__"
+    DATETIME_KEY = "__sq_datetime__"
+    DATE_KEY = "__sq_date__"
+    TIME_KEY = "__sq_time__"
+    TIMEDELTA_KEY = "__sq_timedelta__"
 
     @classmethod
     def serialize_args_and_kwargs(cls, args, kwargs) -> dict[str, Any]:
@@ -53,6 +58,14 @@ class Arguments:
                     for key, value in argument.items()
                 }
             }
+        elif isinstance(argument, datetime):
+            return {cls.DATETIME_KEY: argument.isoformat()}
+        elif isinstance(argument, date):
+            return {cls.DATE_KEY: argument.isoformat()}
+        elif isinstance(argument, time):
+            return {cls.TIME_KEY: argument.isoformat()}
+        elif isinstance(argument, timedelta):
+            return {cls.TIMEDELTA_KEY: argument.total_seconds()}
         elif isinstance(argument, models.Model):
             return {
                 cls.MODEL_KEY: {
@@ -76,6 +89,14 @@ class Arguments:
                     key: cls.deserialize_argument(value)
                     for key, value in argument[cls.HASH_KEY].items()
                 }
+            elif cls.DATETIME_KEY in argument:
+                return datetime.fromisoformat(argument[cls.DATETIME_KEY])
+            elif cls.DATE_KEY in argument:
+                return date.fromisoformat(argument[cls.DATE_KEY])
+            elif cls.TIME_KEY in argument:
+                return time.fromisoformat(argument[cls.TIME_KEY])
+            elif cls.TIMEDELTA_KEY in argument:
+                return timedelta(seconds=argument[cls.TIMEDELTA_KEY])
             elif cls.MODEL_KEY in argument:
                 return cls._deserialize_model(argument[cls.MODEL_KEY])
 
