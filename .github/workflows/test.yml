@@ -12,6 +12,21 @@ jobs:
       matrix:
         python-version: ["3.13", "3.14"]
 
+    services:
+      postgres:
+        image: postgres:17.4-alpine
+        env:
+          POSTGRES_DB: app
+          POSTGRES_USER: steady_queue
+          POSTGRES_PASSWORD: steady_queue
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U steady_queue -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
 
@@ -28,9 +43,12 @@ jobs:
         run: |
           uv sync
 
+      - name: Create queue database
+        run: |
+          PGPASSWORD=steady_queue psql -h localhost -U steady_queue -d postgres -c "CREATE DATABASE queue OWNER steady_queue"
+
       - name: Run tests
         run: |
-          tests/bin/run-docker-postgres
           uv run coverage run runtests.py
 
       - name: Report coverage
