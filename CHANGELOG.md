@@ -10,6 +10,8 @@
 
 - Fixed a bug where the supervisor wouldn't respond to SIGINT while booting if
   Django was waiting on the database connection pool (#16).
+- Fixed serialization of `datetime`, `date`, `time`, and `timedelta` objects
+  passed as task arguments (#30).
 
 ## v0.1.4 - 2026-02-06
 
