@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.1.5 - TBD
+## v0.1.5 - 2026-02-17
 
 **Added:**
 
@@ -12,6 +12,8 @@
   Django was waiting on the database connection pool (#16).
 - Fixed serialization of `datetime`, `date`, `time`, and `timedelta` objects
   passed as task arguments (#30).
+- Fixed some race conditions during process supervision and heartbeats (#29).
+- Fixed double claiming for concurrency-limited tasks (#28).
 
 ## v0.1.4 - 2026-02-06
 
