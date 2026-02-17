@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.6 - 2026-02-17
+
+**Fixed:**
+
+- Bump package version not included in previous release.
+
 ## v0.1.5 - 2026-02-17
 
 **Added:**
