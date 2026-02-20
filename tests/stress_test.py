@@ -414,16 +414,16 @@ def main():
     backend = stress_counter_task.get_backend()
     backend.queues = backend.queues | set(args.queues)
 
+    # Run migrations (in case test DB is fresh)
+    from django.core.management import call_command
+
+    call_command("migrate", "--run-syncdb", verbosity=0)
+
     # Setup
     ensure_counter_table()
     if not args.no_cleanup:
         logger.info("Cleaning up previous data ...")
         cleanup_tables()
-
-    # Run migrations (in case test DB is fresh)
-    from django.core.management import call_command
-
-    call_command("migrate", "--run-syncdb", verbosity=0)
 
     # Phase 1: Enqueue all tasks before starting workers
     enqueue_tasks(args.tasks, args.queues, args.workload)
