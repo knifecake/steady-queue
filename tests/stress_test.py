@@ -418,6 +418,7 @@ def main():
     from django.core.management import call_command
 
     call_command("migrate", "--run-syncdb", verbosity=0)
+    call_command("migrate", "--run-syncdb", "--database", "queue", verbosity=0)
 
     # Setup
     ensure_counter_table()
