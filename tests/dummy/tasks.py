@@ -63,3 +63,52 @@ def dummy_recurring_task_2():
 @task()
 def limited_task_with_lambda_key(account_id: int, message: str = "hello"):
     print(f"limited task for account {account_id}: {message}")
+
+
+@task(queue_name="default")
+def stress_counter_task(job_id: int, workload: str = "none"):
+    """Increment execution counter for a job_id. Used by the stress test to detect duplicates.
+
+    workload controls how much simulated work each task performs:
+      - "none":   just the counter write (fast, tests queue machinery only)
+      - "light":  ~10-30ms sleep + ~1k hash rounds + counter write
+      - "medium": ~30-100ms sleep + ~5k hash rounds + counter write
+      - "heavy":  ~100-300ms sleep + ~20k hash rounds + counter write
+    """
+    import hashlib
+    import random
+    import time
+
+    # Workload profiles: (sleep_min_ms, sleep_max_ms, hash_rounds_min, hash_rounds_max)
+    profiles = {
+        "none": (0, 0, 0, 0),
+        "light": (10, 30, 500, 1500),
+        "medium": (30, 100, 3000, 8000),
+        "heavy": (100, 300, 15000, 25000),
+    }
+    sleep_min, sleep_max, rounds_min, rounds_max = profiles.get(
+        workload, profiles["none"]
+    )
+
+    # IO-bound: simulate an external API call / file write
+    if sleep_max > 0:
+        time.sleep(random.randint(sleep_min, sleep_max) / 1000.0)
+
+    # CPU-bound: iterative hashing
+    if rounds_max > 0:
+        data = f"stress-task-{job_id}".encode()
+        for _ in range(random.randint(rounds_min, rounds_max)):
+            data = hashlib.sha256(data).digest()
+
+    # DB write: always runs (this is our duplicate-execution detector)
+    from django.db import connections
+
+    conn = connections["default"]
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            INSERT INTO stress_test_counter (job_id, exec_count) VALUES (%s, 1)
+            ON CONFLICT (job_id) DO UPDATE SET exec_count = stress_test_counter.exec_count + 1
+            """,
+            [job_id],
+        )

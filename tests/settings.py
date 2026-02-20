@@ -141,6 +141,11 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "django.tasks": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
         "steady_queue": {
             "handlers": ["console"],
             "level": "WARNING",
