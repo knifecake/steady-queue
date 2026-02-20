@@ -10,7 +10,8 @@ steady_queue:
 
 .PHONY: lint
 lint:
-	uv run pre-commit run --all-files
+	uv run ruff check --fix
+	uv run ruff format
 
 .PHONY: force-kill
 force-kill:
