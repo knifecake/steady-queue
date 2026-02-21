@@ -20,7 +20,7 @@ def recurring(
     """
     Decorator for registering a task to run on a recurring schedule.
 
-    Usage:
+    Example::
 
         @recurring(schedule="*/1 * * * *", key="unique_task_key")
         @task()

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+**Added:**
+
+- Sphinx documentation site covering installation, getting started,
+  configuration, API reference, internals and alternatives (#13). Published
+  to Read The Docs.
+
 **Fixed:**
 
 - Fixed a bug where the process would hang on shutdown and require `kill -9`.

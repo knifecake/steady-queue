@@ -13,6 +13,10 @@ lint:
 	uv run ruff check --fix
 	uv run ruff format
 
+.PHONY: docs
+docs:
+	uv run --group docs -m sphinx -b html docs docs/_build/html
+
 .PHONY: force-kill
 force-kill:
 	ps | grep steady_queue | cut -f 1  -d ' '  | xargs kill -9
