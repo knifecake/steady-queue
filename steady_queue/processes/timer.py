@@ -39,7 +39,7 @@ class TimerTask:
         self._stop_event = threading.Event()
 
     def start(self):
-        self.thread = threading.Thread(target=self.run)
+        self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
 
     def stop(self):
@@ -69,7 +69,7 @@ class TimerTask:
 
     def perform_task(self):
         # Run the callable in a separate thread to isolate crashes
-        work_thread = threading.Thread(target=self.wrapped_callable)
+        work_thread = threading.Thread(target=self.wrapped_callable, daemon=True)
         work_thread.start()
         work_thread.join()
 
