@@ -21,7 +21,8 @@ class Maintenance:
         self.maintenance_task.start()
 
     def stop_maintenance_task(self):
-        self.maintenance_task.stop()
+        if hasattr(self, "maintenance_task"):
+            self.maintenance_task.stop()
 
     def fail_orphaned_executions(self):
         with AppExecutor.wrap_in_app_executor():

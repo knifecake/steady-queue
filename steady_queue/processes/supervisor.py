@@ -48,7 +48,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
         except SystemExit:
             logger.info("supervisor interrupted during boot, shutting down")
             self.restore_default_signal_handlers()
-            self.delete_pidfile()
+            self.shutdown()
             return
         self.supervise()
 
@@ -154,7 +154,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
             if terminated_fork and (not is_exited or exit_status > 0):
                 self.handle_claimed_jobs_by(terminated_fork, wait_status)
 
-            self.configured_processes.pop(pid)
+            self.configured_processes.pop(pid, None)
 
     def replace_fork(self, pid: int, exitcode: int) -> None:
         logger.info("replacing fork %s due to exit code %s", pid, exitcode)

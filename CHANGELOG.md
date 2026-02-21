@@ -4,6 +4,9 @@
 
 **Fixed:**
 
+- Fixed a bug where the process would hang on shutdown and require `kill -9`.
+  Timer threads (heartbeat, maintenance) are now daemon threads, matching
+  Ruby's default thread behaviour (#16).
 - Fixed `skip_recurring` not actually skipping scheduling and execution of
   recurring tasks — it now excludes the scheduler process entirely (#37).
 

@@ -63,6 +63,8 @@ class Registrable(Base):
         self.heartbeat_task.start()
 
     def stop_heartbeat(self):
+        if not hasattr(self, "heartbeat_task"):
+            return
         logger.debug("stopping heartbeat for %s", self.name)
         self.heartbeat_task.stop()
         logger.debug("stopped heartbeat for %s", self.name)
