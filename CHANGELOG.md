@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+**Fixed:**
+
+- Fixed `skip_recurring` not actually skipping scheduling and execution of
+  recurring tasks — it now excludes the scheduler process entirely (#37).
+
 ## v0.1.6 - 2026-02-17
 
 **Fixed:**
