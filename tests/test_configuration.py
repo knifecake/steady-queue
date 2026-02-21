@@ -220,6 +220,16 @@ class ConfigurationValidationTestCase(SimpleTestCase):
         errors = config.validate_recurring_tasks()
         self.assertEqual(len(errors), 0)
 
+    def test_skip_recurring_excludes_schedulers_from_configured_processes(self):
+        """skip_recurring option excludes scheduler processes."""
+        options = Configuration.Options(skip_recurring=True)
+        config = Configuration(options)
+
+        process_kinds = [p.kind for p in config.configured_processes]
+        self.assertNotIn("scheduler", process_kinds)
+        self.assertIn("worker", process_kinds)
+        self.assertIn("dispatcher", process_kinds)
+
 
 class RecurringTaskConfigurationTestCase(SimpleTestCase):
     """Tests for recurring task configuration."""

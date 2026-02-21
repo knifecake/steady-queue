@@ -132,6 +132,9 @@ class Configuration:
         if self.options.only_work:
             return self.workers
 
+        if self.skip_recurring:
+            return self.workers + self.dispatchers
+
         return self.workers + self.dispatchers + self.schedulers
 
     @property
