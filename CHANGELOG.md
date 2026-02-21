@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+**Fixed:**
+
+- Fixed a bug where the process would hang on shutdown and require `kill -9`.
+  Timer threads (heartbeat, maintenance) are now daemon threads, matching
+  Ruby's default thread behaviour (#16).
+
 ## v0.1.6 - 2026-02-17
 
 **Fixed:**
