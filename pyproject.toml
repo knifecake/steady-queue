@@ -64,6 +64,9 @@ ignore_missing_imports = true
 django_settings_module = "tests.settings"
 
 [dependency-groups]
+docs = [
+    "sphinx>=8.0",
+]
 dev = [
     "coverage>=7.13.4",
     "django-environ>=0.12.0",
