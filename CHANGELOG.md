@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.1.8 - 2026-03-08
+
 **Fixed:**
 
 - Default `steady_queue.supervisor_pidfile` is now `None` (disabled by
