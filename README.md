@@ -479,8 +479,7 @@ There are several settings that control how Steady Queue works that you can set 
   requesting immediate termination—defaults to 5 seconds.
 - `supervisor_pidfile`: path to a pidfile that the supervisor will create when
   booting to prevent running more than one supervisor in the same host, or in
-  case you want to use it for a health check. It's set to
-  `tmp/pids/steady_queue_supervisor.pid` by default.
+  case you want to use it for a health check. It's `None` by default.
 - `preserve_finished_jobs`: whether to keep finished jobs in the
   `steady_queue_jobs` table—defaults to `True`.
 - `clear_finished_jobs_after`: period to keep finished jobs around, in case

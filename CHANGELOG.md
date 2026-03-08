@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+**Fixed:**
+
+- Default `steady_queue.supervisor_pidfile` is now `None` (disabled by
+  default), matching Solid Queue and avoiding stale pidfile issues in
+  containerized deployments.
+- Supervisor pidfiles now register an `atexit` cleanup hook so graceful exits
+  remove the pidfile more reliably.
+
 ## v0.1.7 - 2026-02-21
 
 **Added:**

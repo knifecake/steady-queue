@@ -189,7 +189,7 @@ Available settings:
 ``steady_queue.supervisor_pidfile``
     Path to a PID file created by the supervisor. Used to prevent multiple
     supervisors on the same host and as a health check target. Defaults to
-    ``tmp/pids/steady_queue_supervisor.pid``.
+    ``None``.
 
 ``steady_queue.preserve_finished_jobs``
     Whether to keep finished jobs in the ``steady_queue_jobs`` table. Defaults
