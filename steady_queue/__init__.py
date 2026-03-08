@@ -17,6 +17,6 @@ clear_finished_jobs_after: timedelta = timedelta(days=1)
 
 default_concurrency_control_period: timedelta = timedelta(minutes=3)
 
-supervisor_pidfile: Optional[str] = "tmp/pids/steady_queue_supervisor.pid"
+supervisor_pidfile: Optional[str] = None
 
 database: str = "default"

@@ -1,3 +1,4 @@
+import atexit
 import os
 
 
@@ -9,6 +10,7 @@ class Pidfile:
     def setup(self):
         self.check_status()
         self.write_file()
+        self.set_at_exit_hook()
 
     def delete(self):
         self.delete_file()
@@ -35,6 +37,9 @@ class Pidfile:
         except FileExistsError:
             self.check_status()
             self.write_file()
+
+    def set_at_exit_hook(self):
+        atexit.register(lambda: self.delete() if os.getpid() == self.pid else None)
 
     def delete_file(self):
         try:
