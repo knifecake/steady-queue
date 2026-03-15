@@ -7,7 +7,11 @@ logger = logging.getLogger("steady_queue")
 
 
 class Signals:
-    SIGNALS = (signal.SIGQUIT, signal.SIGINT, signal.SIGTERM)
+    # SIGQUIT is not available on Windows
+    if hasattr(signal, 'SIGQUIT'):
+        SIGNALS = (signal.SIGQUIT, signal.SIGINT, signal.SIGTERM)
+    else:
+        SIGNALS = (signal.SIGINT, signal.SIGTERM)
     signal_queue: Optional[list] = None
     is_supervising: bool = False
 
