@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+**Fixed:**
+
+- Fixed supervisor child-process crash loops (`exit code 11`) seen with
+  Django/PostgreSQL pooling by resetting DB state before forking and clearing
+  Django's class-level psycopg pool cache in the forking path (#48).
+
 ## v0.1.8 - 2026-03-08
 
 **Fixed:**
