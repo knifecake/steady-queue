@@ -43,6 +43,8 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
         logger.info("starting supervisor with PID %(pid)d", {"pid": self.pid})
         try:
             self.boot()
+            # Fork only after resetting DB state (connections + psycopg pools).
+            self.reset_database_connections()
             self.start_processes()
             self.launch_maintenance_task()
         except SystemExit:
