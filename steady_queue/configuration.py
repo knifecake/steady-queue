@@ -3,9 +3,11 @@ from datetime import timedelta
 from typing import Optional
 
 from crontab import CronTab
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.module_loading import import_string
 
+from steady_queue.db_router import steady_queue_database_alias
 from steady_queue.processes.base import Base
 
 
@@ -167,6 +169,7 @@ class Configuration:
     def is_valid(self):
         self.errors = []
         self.errors.extend(self.validate_configured_processes())
+        self.errors.extend(self.validate_database_pool_size())
         self.errors.extend(self.validate_recurring_tasks())
 
         return len(self.errors) == 0
@@ -174,6 +177,39 @@ class Configuration:
     def validate_configured_processes(self) -> list[ValidationError]:
         if len(self.configured_processes) == 0:
             return [ValidationError("No processes configured")]
+
+        return []
+
+    def validate_database_pool_size(self) -> list[ValidationError]:
+        # Match Solid Queue behavior by validating worker thread count against
+        # the queue DB connection pool size when a max_size is explicitly set.
+        if len(self.options.workers) == 0:
+            return []
+
+        db_alias = steady_queue_database_alias()
+        db_config = settings.DATABASES.get(db_alias, {})
+
+        if db_config.get("ENGINE") != "django.db.backends.postgresql":
+            return []
+
+        pool_options = db_config.get("OPTIONS", {}).get("pool")
+        if not isinstance(pool_options, dict):
+            return []
+
+        pool_max_size = pool_options.get("max_size")
+        if not isinstance(pool_max_size, int):
+            return []
+
+        if pool_max_size < self.estimated_number_of_threads:
+            return [
+                ValidationError(
+                    "Steady Queue is configured to use "
+                    f"{self.estimated_number_of_threads} threads but the "
+                    f"database connection pool max_size for '{db_alias}' is "
+                    f"{pool_max_size}. Increase "
+                    f"DATABASES['{db_alias}']['OPTIONS']['pool']['max_size']."
+                )
+            ]
 
         return []
 
@@ -194,6 +230,13 @@ class Configuration:
                 )
 
         return errors
+
+    @property
+    def estimated_number_of_threads(self) -> int:
+        # At most `threads` in each worker + 2 additional threads (worker loop
+        # and heartbeat), mirroring Solid Queue's sizing heuristic.
+        max_worker_threads = max((w.threads for w in self.options.workers), default=1)
+        return max_worker_threads + 2
 
     @property
     def skip_recurring(self) -> bool:

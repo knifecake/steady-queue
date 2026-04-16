@@ -7,6 +7,10 @@
 - Fixed supervisor child-process crash loops (`exit code 11`) seen with
   Django/PostgreSQL pooling by resetting DB state before forking and clearing
   Django's class-level psycopg pool cache in the forking path (#48).
+- Keep database pooling enabled while resetting fork-inherited connection state
+  so child processes can establish fresh pools after forking.
+- Validate worker thread sizing against PostgreSQL `OPTIONS.pool.max_size`
+  (when explicitly configured), mirroring Solid Queue's pool sizing check.
 
 ## v0.1.8 - 2026-03-08
 

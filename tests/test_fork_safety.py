@@ -1,7 +1,5 @@
-import warnings
 from unittest.mock import patch
 
-from django.conf import settings
 from django.test import SimpleTestCase
 
 from steady_queue.configuration import Configuration
@@ -44,7 +42,9 @@ class SupervisorForkSafetyTest(SimpleTestCase):
 
 
 class ResetDatabaseConnectionsTest(SimpleTestCase):
-    def test_reset_connections_disables_and_clears_psycopg_pool_cache(self):
+    def test_reset_connections_clears_psycopg_pool_cache_without_disabling_pooling(
+        self,
+    ):
         class FakePool:
             def __init__(self):
                 self.closed = False
@@ -85,38 +85,11 @@ class ResetDatabaseConnectionsTest(SimpleTestCase):
             }
         )
 
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore",
-                message="Overriding setting DATABASES can lead to unexpected behavior.",
-                category=UserWarning,
-            )
+        with patch("steady_queue.processes.base.connections", fake_connections):
+            Base().reset_database_connections()
 
-            with self.settings(
-                DATABASES={
-                    "default": {
-                        "ENGINE": "django.db.backends.postgresql",
-                        "OPTIONS": {"pool": {"min_size": 1, "max_size": 4}},
-                    },
-                    "queue": {
-                        "ENGINE": "django.db.backends.postgresql",
-                        "OPTIONS": {"pool": {"min_size": 1, "max_size": 4}},
-                    },
-                    "sqlite": {
-                        "ENGINE": "django.db.backends.sqlite3",
-                        "OPTIONS": {"pool": {"min_size": 1, "max_size": 4}},
-                    },
-                }
-            ):
-                with patch("steady_queue.processes.base.connections", fake_connections):
-                    Base().reset_database_connections()
-
-                self.assertNotIn("pool", settings.DATABASES["default"]["OPTIONS"])
-                self.assertNotIn("pool", settings.DATABASES["queue"]["OPTIONS"])
-                self.assertIn("pool", settings.DATABASES["sqlite"]["OPTIONS"])
-
-        self.assertNotIn("pool", fake_connections["default"].settings_dict["OPTIONS"])
-        self.assertNotIn("pool", fake_connections["queue"].settings_dict["OPTIONS"])
+        self.assertIn("pool", fake_connections["default"].settings_dict["OPTIONS"])
+        self.assertIn("pool", fake_connections["queue"].settings_dict["OPTIONS"])
         self.assertIn("pool", fake_connections["sqlite"].settings_dict["OPTIONS"])
 
         self.assertTrue(fake_connections.close_all_called)

@@ -1,3 +1,4 @@
+import warnings
 from datetime import timedelta
 
 from django.core.exceptions import ValidationError
@@ -152,6 +153,54 @@ class ConfigurationValidationTestCase(SimpleTestCase):
         self.assertFalse(config.is_valid)
         self.assertGreater(len(config.errors), 0)
         self.assertIn("No processes configured", str(config.errors[0]))
+
+    def test_small_postgres_pool_fails_validation(self):
+        """Configured worker threads must fit in postgres pool max_size."""
+        options = Configuration.Options(workers=[Configuration.Worker(threads=3)])
+        config = Configuration(options)
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="Overriding setting DATABASES can lead to unexpected behavior.",
+                category=UserWarning,
+            )
+
+            with self.settings(
+                DATABASES={
+                    "queue": {
+                        "ENGINE": "django.db.backends.postgresql",
+                        "OPTIONS": {"pool": {"min_size": 1, "max_size": 4}},
+                    }
+                }
+            ):
+                self.assertFalse(config.is_valid)
+
+        self.assertTrue(
+            any("pool max_size" in error.message for error in config.errors)
+        )
+
+    def test_sufficient_postgres_pool_passes_validation(self):
+        """Validation passes when postgres pool max_size is large enough."""
+        options = Configuration.Options(workers=[Configuration.Worker(threads=3)])
+        config = Configuration(options)
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="Overriding setting DATABASES can lead to unexpected behavior.",
+                category=UserWarning,
+            )
+
+            with self.settings(
+                DATABASES={
+                    "queue": {
+                        "ENGINE": "django.db.backends.postgresql",
+                        "OPTIONS": {"pool": {"min_size": 1, "max_size": 5}},
+                    }
+                }
+            ):
+                self.assertTrue(config.is_valid)
 
     def test_invalid_recurring_task_schedule_fails_validation(self):
         """Invalid cron schedule in recurring task fails validation."""
