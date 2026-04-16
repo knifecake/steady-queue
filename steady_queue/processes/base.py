@@ -49,45 +49,6 @@ class Base:
     def generate_name(self) -> str:
         return "-".join((self.kind, secrets.token_hex(10)))
 
-    def disable_connection_pooling(self):
-        """
-        Disable connection pooling for steady_queue processes.
-
-        Connection pooling with psycopg doesn't work with forked processes.
-        This method removes pool configuration from database settings and from
-        already-instantiated Django connection wrappers.
-        """
-        from django.conf import settings
-
-        if hasattr(settings, "DATABASES"):
-            for alias, db_config in settings.DATABASES.items():
-                if db_config.get("ENGINE") != "django.db.backends.postgresql":
-                    continue
-
-                options = db_config.setdefault("OPTIONS", {})
-                if "pool" in options:
-                    logger.info(
-                        "%(name)s disabling connection pooling for database '%(alias)s'",
-                        {"name": self.name, "alias": alias},
-                    )
-                    del options["pool"]
-
-        for alias in connections:
-            connection = connections[alias]
-            if (
-                connection.settings_dict.get("ENGINE")
-                != "django.db.backends.postgresql"
-            ):
-                continue
-
-            options = connection.settings_dict.setdefault("OPTIONS", {})
-            if "pool" in options:
-                logger.debug(
-                    "%(name)s removing pool option from instantiated connection '%(alias)s'",
-                    {"name": self.name, "alias": alias},
-                )
-                del options["pool"]
-
     def close_postgresql_connection_pools(self):
         """
         Close and clear Django's class-level psycopg pool cache.
@@ -130,9 +91,8 @@ class Base:
         """
         Reset database connections for forked processes.
 
-        This disables connection pooling and resets connection state to prevent
-        issues with shared connections between parent and child processes.
+        This closes all current connections and clears Django's class-level
+        psycopg pool cache so child processes don't inherit parent pool state.
         """
-        self.disable_connection_pooling()
         connections.close_all()
         self.close_postgresql_connection_pools()

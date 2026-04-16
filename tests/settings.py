@@ -47,7 +47,7 @@ DATABASES = {
 DATABASE_ROUTERS = ["steady_queue.db_router.SteadyQueueRouter"]
 
 if DATABASES["queue"]["ENGINE"] == "django.db.backends.postgresql":
-    DATABASES["queue"]["OPTIONS"] = {"pool": {"min_size": 2, "max_size": 4}}
+    DATABASES["queue"]["OPTIONS"] = {"pool": {"min_size": 2, "max_size": 8}}
     DATABASES["queue"]["TEST"] = {"NAME": "test_queue"}
     DATABASES["default"]["TEST"] = {"NAME": "test_default"}
 
