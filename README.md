@@ -37,6 +37,7 @@ The database backend exposed by Steady Queue doesn't support the following optio
   result = task.return_value` will result in an error (even if the task has
   completed processing). Instead, we recommend saving the results directly on
   your database or file storage system if they need to be kept around.
+- **Requires a POSIX system** due to the concurrency model based on `os.fork`. Steady Queue doesn't run on windows.
 
 The Steady Queue backend advertises these limitations by [setting the
 corresponding flags][django-tasks-flags] on its backend.
