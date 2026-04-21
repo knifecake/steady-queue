@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+**Fixed:**
+
+- Avoid duplicate recurring-task enqueues when multiple schedulers race on the
+  same `run_at`. We now create recurring execution records atomically and skip
+  already-recorded runs, matching Solid Queue's behavior.
+
 ## v0.2.0 - 2026-04-18
 
 **Fixed:**

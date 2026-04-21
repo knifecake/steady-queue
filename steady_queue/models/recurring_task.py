@@ -97,7 +97,10 @@ class RecurringTask(UpdatedAtMixin, BaseModel):
         return self.recurring_executions.max("run_at")
 
     def enqueue(self, run_at: datetime):
-        return self.enqueue_and_record(run_at)
+        try:
+            return self.enqueue_and_record(run_at)
+        except RecurringExecution.AlreadyRecorded:
+            return False
 
     def enqueue_and_record(self, run_at: datetime):
         with transaction.atomic(using=self._state.db):
@@ -108,6 +111,7 @@ class RecurringTask(UpdatedAtMixin, BaseModel):
                 queue_name=self.queue_name, priority=self.priority
             ).enqueue(*args, **kwargs)
             RecurringExecution.objects.record(task_result, self, run_at)
+            return task_result
 
     @property
     def previous_time(self) -> datetime:
