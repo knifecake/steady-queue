@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import IntegrityError, models
 from django.tasks import TaskResult
 
 from .execution import Execution, ExecutionQuerySet
@@ -9,9 +9,10 @@ class RecurringExecutionQuerySet(ExecutionQuerySet):
         return self.filter(job__isnull=True)
 
     def record(self, task_result: TaskResult, task, run_at):
-        self.update_or_create(
-            task=task, run_at=run_at, defaults={"job_id": task_result.id}
-        )
+        try:
+            self.create(task=task, run_at=run_at, job_id=task_result.id)
+        except IntegrityError as e:
+            raise self.model.AlreadyRecorded from e
 
     def clear_in_batches(self, batch_size=500):
         while True:
@@ -21,6 +22,9 @@ class RecurringExecutionQuerySet(ExecutionQuerySet):
 
 
 class RecurringExecution(Execution):
+    class AlreadyRecorded(Exception):
+        pass
+
     class Meta:
         verbose_name = "recurring execution"
         verbose_name_plural = "recurring executions"
