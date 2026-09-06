@@ -1,6 +1,12 @@
 import logging
 
 from steady_queue.processes.supervised import Supervised
+from steady_queue.signals import (
+    _process_signal_context,
+    _send_process_signal,
+    process_started,
+    process_stopped,
+)
 
 logger = logging.getLogger("steady_queue")
 
@@ -10,11 +16,22 @@ class Runnable(Supervised):
 
     def start(self):
         self.boot()
+        signal_context = _process_signal_context(self)
+        _send_process_signal(process_started, self, context=signal_context)
 
-        if self.is_running_async:
-            raise NotImplementedError
-        else:
-            self.run()
+        error = None
+        try:
+            if self.is_running_async:
+                raise NotImplementedError
+            else:
+                self.run()
+        except BaseException as exception:
+            error = exception
+            raise
+        finally:
+            _send_process_signal(
+                process_stopped, self, context=signal_context, error=error
+            )
 
     def stop(self):
         super().stop()

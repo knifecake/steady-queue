@@ -83,6 +83,6 @@ differences in the external interface are:
 - **Recurring tasks.** Solid Queue supports command-based recurring tasks
   (arbitrary shell commands on a schedule). Steady Queue only supports
   recurring Python task functions.
-- **Instrumentation.** Solid Queue emits rich ``ActiveSupport::Notifications``
-  events. Steady Queue uses standard Python logging and the ``django.tasks``
-  signals instead.
+- **Instrumentation.** Solid Queue emits a broader set of timed
+  ``ActiveSupport::Notifications`` events. Steady Queue uses standard Python
+  logging plus Django signals for task, process, and queue lifecycle events.
