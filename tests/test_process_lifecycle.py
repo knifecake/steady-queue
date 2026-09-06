@@ -1,5 +1,5 @@
 from datetime import timedelta
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 from django.utils import timezone
@@ -272,11 +272,11 @@ class PoolPostNilProcessTest(TestCase):
 
     def test_pool_post_does_not_access_execution_process(self):
         """Pool.post should not crash when execution.process is None."""
-        import time
-
         from steady_queue.processes.pool import Pool
 
-        pool = Pool(size=1, on_idle=lambda: None)
+        on_idle = MagicMock()
+        pool = Pool(size=1, on_idle=on_idle, worker_name="test-worker")
+        self.addCleanup(pool.executor.shutdown, wait=True)
 
         execution = MagicMock()
         execution.process = None
@@ -284,11 +284,25 @@ class PoolPostNilProcessTest(TestCase):
         execution.job.class_name = "test_task"
         execution.pk = 1
 
-        # Should not raise AttributeError
-        pool.post(execution)
-        # Give the thread pool time to execute
-        time.sleep(0.2)
-        pool.shutdown()
+        submit = pool.executor.submit
+        futures = []
 
-        # Verify perform was called successfully
+        def capture_future(*args, **kwargs):
+            future = submit(*args, **kwargs)
+            futures.append(future)
+            return future
+
+        with self.assertLogs("steady_queue", level="INFO") as logs:
+            with patch.object(pool.executor, "submit", capture_future):
+                pool.post(execution)
+            # Exceptions after perform() live in the Future. Checking only that
+            # perform() ran allowed the original #26 logging crash to pass.
+            futures[0].result(timeout=5)
+
         execution.perform.assert_called_once()
+        self.assertEqual(
+            logs.output,
+            ["INFO:steady_queue:test-worker completed job 1 test_task"],
+        )
+        self.assertEqual(pool.idle_threads, 1)
+        on_idle.assert_called_once_with()
