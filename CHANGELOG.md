@@ -9,6 +9,10 @@
 
 **Fixed:**
 
+- Reset database connections and PostgreSQL pools immediately before each
+  supervised fork, including replacements after crashed-worker job recovery
+  (#48). This addresses a remaining cleanup gap; the reported macOS segfault
+  has not been reproduced.
 - Avoid duplicate recurring-task enqueues when multiple schedulers race on the
   same `run_at`. We now create recurring execution records atomically and skip
   already-recorded runs, matching Solid Queue's behavior.

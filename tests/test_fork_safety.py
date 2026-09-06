@@ -1,10 +1,20 @@
+from unittest import skipUnless
 from unittest.mock import patch
 
-from django.test import SimpleTestCase
+from django.db import connections
+from django.test import SimpleTestCase, TransactionTestCase
 
 from steady_queue.configuration import Configuration
+from steady_queue.models import (
+    ClaimedExecution,
+    FailedExecution,
+    Job,
+    Process,
+    ReadyExecution,
+)
 from steady_queue.processes.base import Base
 from steady_queue.processes.supervisor import Supervisor
+from tests.dummy.tasks import dummy_task
 
 
 class SupervisorForkSafetyTest(SimpleTestCase):
@@ -39,6 +49,81 @@ class SupervisorForkSafetyTest(SimpleTestCase):
                 "supervise",
             ],
         )
+
+
+@skipUnless(
+    connections["queue"].vendor == "postgresql",
+    "Requires PostgreSQL connection pooling on the queue database",
+)
+class SupervisorPostgreSQLForkTest(TransactionTestCase):
+    databases = {"default", "queue"}
+
+    def setUp(self):
+        options = Configuration.Options(
+            workers=[], dispatchers=[], recurring_tasks=[], skip_recurring=True
+        )
+        self.supervisor = Supervisor(Configuration(options))
+        self.supervisor.register()
+        self.worker_config = Configuration.Process(
+            kind="worker", attributes=Configuration.Worker()
+        )
+        self.connection = connections["queue"]
+        self.pool_options = self.connection.settings_dict["OPTIONS"]["pool"].copy()
+        self.addCleanup(self.supervisor.reset_database_connections)
+
+    def assert_reset_at_fork(self):
+        # Intercept only the OS fork; exercise real Django connections, psycopg
+        # pools, and replacement recovery up to the boundary children inherit.
+        self.assertIsNone(self.connection.connection)
+        self.assertEqual(self.connection.__class__._connection_pools, {})
+        self.assertEqual(
+            self.connection.settings_dict["OPTIONS"]["pool"], self.pool_options
+        )
+        return 12346
+
+    def test_start_process_resets_open_connection_and_pool_before_fork(self):
+        self.assertIsNotNone(self.connection.connection)
+        self.assertIn("queue", self.connection.__class__._connection_pools)
+
+        with patch(
+            "steady_queue.processes.supervisor.os.fork",
+            side_effect=self.assert_reset_at_fork,
+        ) as fork:
+            self.supervisor.start_process(self.worker_config)
+
+        fork.assert_called_once_with()
+        self.assertIn(12346, self.supervisor.forks)
+        # Pooling remains usable by the parent after the reset.
+        self.assertTrue(Process.objects.filter(pk=self.supervisor.process.pk).exists())
+        self.assertIn("queue", self.connection.__class__._connection_pools)
+
+    def test_replacement_resets_connection_reopened_by_job_recovery(self):
+        old_worker = self.worker_config.instantiate()
+        self.addCleanup(old_worker.pool.shutdown)
+        registered_worker = Process.register(
+            kind="worker",
+            name=old_worker.name,
+            pid=12345,
+            hostname="test-host",
+            supervisor=self.supervisor.process,
+        )
+        job = Job.objects.enqueue(dummy_task, [], {})
+        ReadyExecution.objects.claim(["*"], 1, registered_worker.pk)
+        self.supervisor.forks[12345] = old_worker
+        self.supervisor.configured_processes[12345] = self.worker_config
+        self.supervisor.reset_database_connections()
+
+        with patch(
+            "steady_queue.processes.supervisor.os.fork",
+            side_effect=self.assert_reset_at_fork,
+        ) as fork:
+            self.supervisor.replace_fork(12345, 11)
+
+        fork.assert_called_once_with()
+        self.assertNotIn(12345, self.supervisor.forks)
+        self.assertIn(12346, self.supervisor.forks)
+        self.assertFalse(ClaimedExecution.objects.filter(job=job).exists())
+        self.assertTrue(FailedExecution.objects.filter(job=job).exists())
 
 
 class ResetDatabaseConnectionsTest(SimpleTestCase):

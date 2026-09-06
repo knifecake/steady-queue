@@ -86,6 +86,9 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
         instance.supervisor = self.process
         instance.mode = "fork"
 
+        # Replacement recovery queries the database after the startup reset.
+        # Clear that connection and pool state before the child inherits it.
+        self.reset_database_connections()
         if (pid := os.fork()) == 0:
             # child
             instance.start()
