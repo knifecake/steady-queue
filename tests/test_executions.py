@@ -1,9 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
+from unittest import skipUnless
 from unittest.mock import patch
 
 from django.db import connections
-from django.test import TestCase, TransactionTestCase, skipUnlessDBFeature
+from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 
 import steady_queue
@@ -113,7 +114,10 @@ class ReadyExecutionTestCase(TestHelperMixin, TestCase):
 class ConcurrentClaimTestCase(TestHelperMixin, TransactionTestCase):
     databases = {"default", "queue"}
 
-    @skipUnlessDBFeature("has_select_for_update_skip_locked")
+    @skipUnless(
+        connections["queue"].features.has_select_for_update_skip_locked,
+        "The queue database must support SELECT FOR UPDATE SKIP LOCKED",
+    )
     def test_higher_priority_arrival_does_not_change_claimed_candidates(self):
         """#25: keep the selected jobs stable across insertion and retrieval."""
         process = self.create_test_process()
