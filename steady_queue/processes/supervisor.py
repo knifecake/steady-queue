@@ -158,14 +158,14 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
     def reap_and_replace_terminated_forks(self) -> None:
         while True:
             try:
-                pid, exitcode = os.waitpid(-1, os.WNOHANG)
+                pid, wait_status = os.waitpid(-1, os.WNOHANG)
             except ChildProcessError:
                 break
             else:
                 if not pid:
                     break
 
-            self.replace_fork(pid, exitcode)
+            self.replace_fork(pid, wait_status)
 
     def reap_terminated_forks(self) -> None:
         while True:
@@ -186,10 +186,11 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
 
             self.configured_processes.pop(pid, None)
 
-    def replace_fork(self, pid: int, exitcode: int) -> None:
+    def replace_fork(self, pid: int, wait_status: int) -> None:
+        exitcode = os.waitstatus_to_exitcode(wait_status)
         logger.info("replacing fork %s due to exit code %s", pid, exitcode)
         if terminated_fork := self.forks.pop(pid, None):
-            self.handle_claimed_jobs_by(terminated_fork, exitcode)
+            self.handle_claimed_jobs_by(terminated_fork, wait_status)
             replacement_pid = self.start_process(self.configured_processes.pop(pid))
             process_restarted.send(
                 sender=ProcessLifecycle,

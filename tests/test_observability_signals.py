@@ -132,11 +132,12 @@ class ProcessLifecycleSignalTests(SimpleTestCase):
         self.addCleanup(process_restarted.disconnect, restarted)
 
         with (
-            patch.object(supervisor, "handle_claimed_jobs_by"),
+            patch.object(supervisor, "handle_claimed_jobs_by") as recover_jobs,
             patch.object(supervisor, "start_process", return_value=456),
         ):
-            supervisor.replace_fork(123, 9)
+            supervisor.replace_fork(123, 7 << 8)
 
+        recover_jobs.assert_called_once_with(terminated, 7 << 8)
         restarted.assert_called_once_with(
             signal=process_restarted,
             sender=ProcessLifecycle,
@@ -145,7 +146,7 @@ class ProcessLifecycleSignalTests(SimpleTestCase):
             pid=123,
             hostname=terminated.hostname,
             metadata={},
-            exitcode=9,
+            exitcode=7,
             replacement_pid=456,
             supervisor_pid=supervisor.pid,
         )
