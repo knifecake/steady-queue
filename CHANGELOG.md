@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.2.1 - 2026-09-06
+
 **Added:**
 
 - Deterministic regression coverage for job arrivals during claiming (#25) and
