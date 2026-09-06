@@ -506,8 +506,17 @@ instance that is handling the task, as well as the `task_result` (a
 `django.tasks.TaskResult` instance) with information on how the task was called
 and its status.
 
-Unlike Solid Queue, steady queue doesn't yet emit signals related to the
-lifecycle of its processes.
+Steady Queue also emits operational signals from ``steady_queue.signals``:
+
+- `process_started` and `process_stopped` when a supervisor or child process
+  enters or leaves its run loop.
+- `process_restarted` when the supervisor replaces a terminated child.
+- `queue_paused` and `queue_resumed` after queue control actions.
+
+Process signals include process identity and metadata. Queue signals include a
+`changed` flag so receivers can distinguish state transitions from idempotent
+actions. See the [configuration documentation](https://steady-queue.readthedocs.io/en/latest/configuration.html#signals)
+for the complete payloads.
 
 ## Logging
 
@@ -795,8 +804,9 @@ there are a few differences which we outline below.
   will ever be supported, but we've kept the database column for compatibility.
 - Steady Queue worker processes do not set the process name (or procline)
   because doing so requires introducing an external dependency.
-- Steady Queue does not expose rich instrumentation like Solid Queue does due to
-  the lack of a framework-native equivalent to `ActiveSupport::Notifications`.
+- Steady Queue exposes Django signals for task and operational lifecycle events,
+  but does not yet provide the full timed instrumentation event set emitted by
+  Solid Queue through `ActiveSupport::Notifications`.
 - **Priority ordering:** Steady Queue follows Django's convention where larger
   numbers indicate higher priority (e.g., a task with priority 10 runs before
   priority 0), whereas Solid Queue uses the inverse (smaller numbers = higher

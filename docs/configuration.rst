@@ -222,6 +222,27 @@ Steady Queue emits the standard `django.tasks signals
 All signals include ``sender`` (the ``SteadyQueueBackend`` instance) and
 ``task_result`` (a ``django.tasks.TaskResult``).
 
+Steady Queue also emits operational lifecycle signals from
+``steady_queue.signals``:
+
+- ``process_started`` — after a supervisor, worker, dispatcher, or scheduler
+  has booted and registered.
+- ``process_stopped`` — after a process run loop exits. The ``error`` argument
+  is ``None`` for a normal exit and contains the exception otherwise.
+- ``process_restarted`` — after a supervisor replaces a terminated child.
+- ``queue_paused`` and ``queue_resumed`` — after a queue control action. The
+  ``changed`` argument distinguishes a real state transition from an
+  idempotent repeat.
+
+Process signals use the public ``steady_queue.signals.ProcessLifecycle`` type
+as their sender and include ``process_kind``, ``process_name``, ``pid``,
+``hostname``, and ``metadata``. ``process_restarted`` additionally includes
+``exitcode``, ``replacement_pid``, and ``supervisor_pid``. Queue signals use
+the public ``steady_queue.signals.QueueLifecycle`` type as their sender and
+include ``queue_name`` and ``changed``. Signal payloads deliberately contain
+no Steady Queue runtime or model objects. These synchronous Django signals can
+feed application logging, metrics or tracing integrations.
+
 Logging
 -------
 

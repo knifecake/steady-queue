@@ -2,6 +2,7 @@ from django.db import models
 
 from steady_queue.models.pause import Pause
 from steady_queue.models.ready_execution import ReadyExecution
+from steady_queue.signals import QueueLifecycle, queue_paused, queue_resumed
 
 
 class QueueQuerySet(models.QuerySet):
@@ -48,10 +49,20 @@ class Queue(models.Model):
         return not self.is_paused
 
     def pause(self) -> None:
-        Pause.objects.get_or_create(queue_name=self.queue_name)
+        _, changed = Pause.objects.get_or_create(queue_name=self.queue_name)
+        queue_paused.send(
+            sender=QueueLifecycle,
+            queue_name=self.queue_name,
+            changed=changed,
+        )
 
     def resume(self) -> None:
-        Pause.objects.filter(queue_name=self.queue_name).delete()
+        deleted, _ = Pause.objects.filter(queue_name=self.queue_name).delete()
+        queue_resumed.send(
+            sender=QueueLifecycle,
+            queue_name=self.queue_name,
+            changed=deleted > 0,
+        )
 
     def __str__(self) -> str:
         return self.queue_name

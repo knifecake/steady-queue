@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+**Added:**
+
+- Django signals for process start, stop, and restart events, and queue pause
+  and resume actions (#23).
+
 ## v0.2.1 - 2026-09-06
 
 **Added:**

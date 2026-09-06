@@ -15,6 +15,14 @@ from steady_queue.processes.pidfiled import Pidfiled
 from steady_queue.processes.registrable import Registrable
 from steady_queue.processes.signals import Signals
 from steady_queue.processes.timer import wait_until
+from steady_queue.signals import (
+    ProcessLifecycle,
+    _process_signal_context,
+    _send_process_signal,
+    process_restarted,
+    process_started,
+    process_stopped,
+)
 
 logger = logging.getLogger("steady_queue")
 
@@ -40,19 +48,35 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
         super().__init__()
 
     def start(self) -> None:
-        logger.info("starting supervisor with PID %(pid)d", {"pid": self.pid})
+        originating_pid = self.pid
+        logger.info("starting supervisor with PID %(pid)d", {"pid": originating_pid})
+        started = False
+        error = None
+        signal_context = None
         try:
-            self.boot()
-            # Fork only after resetting DB state (connections + psycopg pools).
-            self.reset_database_connections()
-            self.start_processes()
-            self.launch_maintenance_task()
-        except SystemExit:
-            logger.info("supervisor interrupted during boot, shutting down")
-            self.restore_default_signal_handlers()
-            self.shutdown()
-            return
-        self.supervise()
+            try:
+                self.boot()
+                started = True
+                signal_context = _process_signal_context(self)
+                _send_process_signal(process_started, self, context=signal_context)
+                # Fork only after resetting DB state (connections + psycopg pools).
+                self.reset_database_connections()
+                self.start_processes()
+                self.launch_maintenance_task()
+            except SystemExit:
+                logger.info("supervisor interrupted during boot, shutting down")
+                self.restore_default_signal_handlers()
+                self.shutdown()
+                return
+            self.supervise()
+        except BaseException as exception:
+            error = exception
+            raise
+        finally:
+            if started and self.pid == originating_pid:
+                _send_process_signal(
+                    process_stopped, self, context=signal_context, error=error
+                )
 
     def boot(self) -> None:
         super().boot()
@@ -80,7 +104,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
             logger.debug("supervisor finally block")
             self.shutdown()
 
-    def start_process(self, process: Configuration.Process) -> None:
+    def start_process(self, process: Configuration.Process) -> int:
         logger.info("starting process %(process)s", {"process": process})
         instance = process.instantiate()
         instance.supervisor = self.process
@@ -98,6 +122,7 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
         self.reset_database_connections()
         self.configured_processes[pid] = process
         self.forks[pid] = instance
+        return pid
 
     def set_procline(self) -> None:
         pass
@@ -133,14 +158,14 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
     def reap_and_replace_terminated_forks(self) -> None:
         while True:
             try:
-                pid, exitcode = os.waitpid(-1, os.WNOHANG)
+                pid, wait_status = os.waitpid(-1, os.WNOHANG)
             except ChildProcessError:
                 break
             else:
                 if not pid:
                     break
 
-            self.replace_fork(pid, exitcode)
+            self.replace_fork(pid, wait_status)
 
     def reap_terminated_forks(self) -> None:
         while True:
@@ -161,11 +186,23 @@ class Supervisor(Maintenance, Signals, Pidfiled, Registrable, Interruptible, Bas
 
             self.configured_processes.pop(pid, None)
 
-    def replace_fork(self, pid: int, exitcode: int) -> None:
+    def replace_fork(self, pid: int, wait_status: int) -> None:
+        exitcode = os.waitstatus_to_exitcode(wait_status)
         logger.info("replacing fork %s due to exit code %s", pid, exitcode)
         if terminated_fork := self.forks.pop(pid, None):
-            self.handle_claimed_jobs_by(terminated_fork, exitcode)
-            self.start_process(self.configured_processes.pop(pid))
+            self.handle_claimed_jobs_by(terminated_fork, wait_status)
+            replacement_pid = self.start_process(self.configured_processes.pop(pid))
+            process_restarted.send(
+                sender=ProcessLifecycle,
+                process_kind=terminated_fork.kind,
+                process_name=terminated_fork.name,
+                pid=pid,
+                hostname=terminated_fork.hostname,
+                metadata=terminated_fork.metadata,
+                exitcode=exitcode,
+                replacement_pid=replacement_pid,
+                supervisor_pid=self.pid,
+            )
 
     def handle_claimed_jobs_by(self, terminated_fork: Base, exitcode: int) -> None:
         if not self.process:
