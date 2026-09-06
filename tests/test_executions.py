@@ -1,6 +1,9 @@
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
+from unittest.mock import patch
 
-from django.test import TestCase
+from django.db import connections
+from django.test import TestCase, TransactionTestCase, skipUnlessDBFeature
 from django.utils import timezone
 
 import steady_queue
@@ -14,6 +17,7 @@ from steady_queue.models import (
     ScheduledExecution,
     Semaphore,
 )
+from steady_queue.models.claimed_execution import ClaimedExecutionQuerySet
 from tests.dummy.tasks import dummy_task, limited_task, limited_task_with_lambda_key
 
 
@@ -104,6 +108,54 @@ class ReadyExecutionTestCase(TestHelperMixin, TestCase):
 
         self.assertEqual(len(claimed), 0)
         self.assertEqual(ReadyExecution.objects.count(), 1)
+
+
+class ConcurrentClaimTestCase(TestHelperMixin, TransactionTestCase):
+    databases = {"default", "queue"}
+
+    @skipUnlessDBFeature("has_select_for_update_skip_locked")
+    def test_higher_priority_arrival_does_not_change_claimed_candidates(self):
+        """#25: keep the selected jobs stable across insertion and retrieval."""
+        process = self.create_test_process()
+        original = self.create_job_in_queue("default", priority=0)
+        bulk_create = ClaimedExecutionQuerySet.bulk_create
+
+        def enqueue_higher_priority_job():
+            try:
+                return self.create_job_in_queue("default", priority=10).pk
+            finally:
+                connections.close_all()
+
+        def insert_claims_then_enqueue(queryset, *args, **kwargs):
+            result = bulk_create(queryset, *args, **kwargs)
+            # Commit an arrival on another connection after claims are inserted,
+            # but before claiming() retrieves them. No sleeps or timing races.
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                arrival = executor.submit(enqueue_higher_priority_job)
+                arrivals.append(arrival.result(timeout=10))
+            return result
+
+        arrivals = []
+        with patch.object(
+            ClaimedExecutionQuerySet, "bulk_create", insert_claims_then_enqueue
+        ):
+            claimed = ReadyExecution.objects.claim(["*"], 1, process.pk)
+
+        self.assertEqual([execution.job_id for execution in claimed], [original.pk])
+        self.assertFalse(
+            ReadyExecution.objects.filter(
+                job_id__in=ClaimedExecution.objects.values("job_id")
+            ).exists()
+        )
+        self.assertEqual(
+            list(ReadyExecution.objects.values_list("job_id", flat=True)), arrivals
+        )
+
+        # Draining the remaining queue must not try to claim the original again.
+        next_claimed = ReadyExecution.objects.claim(["*"], 1, process.pk)
+        self.assertEqual([execution.job_id for execution in next_claimed], arrivals)
+        self.assertEqual(ReadyExecution.objects.claim(["*"], 1, process.pk), [])
+        self.assertEqual(ClaimedExecution.objects.count(), 2)
 
 
 class ClaimedExecutionTestCase(TestHelperMixin, TestCase):

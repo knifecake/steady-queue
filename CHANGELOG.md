@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+**Added:**
+
+- Deterministic regression coverage for job arrivals during claiming (#25) and
+  propagation of thread-pool logging failures in the missing-process test (#26).
+
 **Fixed:**
 
 - Avoid duplicate recurring-task enqueues when multiple schedulers race on the
