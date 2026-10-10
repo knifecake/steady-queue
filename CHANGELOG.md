@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Fixed:**
+
+- Update the development Django lock to 6.0.9 for the October 2026 security fixes.
+
 **Added:**
 
 - Django signals for process start, stop, and restart events, and queue pause
