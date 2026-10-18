@@ -40,9 +40,8 @@ class AppExecutor:
                 connection.close()
             raise
         finally:
-            # Django automatically manages connection lifecycle,
-            # but we can explicitly close if needed for long-running processes
             if threading.current_thread() != threading.main_thread():
-                # Only close connections in background threads
-                # Main thread connections are handled by Django's request/response cycle
-                connection.close()
+                # Worker threads are reused without Django's request cleanup.
+                # Return connections for every initialized alias, including the
+                # application databases used by the task, to their pools.
+                connections.close_all()

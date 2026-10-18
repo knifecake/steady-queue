@@ -11,6 +11,12 @@
 - Django signals for process start, stop, and restart events, and queue pause
   and resume actions (#23).
 
+**Fixed:**
+
+- Return connections for all database aliases used by background tasks after
+  success or failure. Separate application databases could retain checked-out
+  connections between jobs and exhaust their PostgreSQL pools.
+
 ## v0.2.1 - 2026-09-06
 
 **Added:**
