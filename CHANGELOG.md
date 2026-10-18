@@ -2,9 +2,7 @@
 
 ## Unreleased
 
-**Fixed:**
-
-- Update the development Django lock to 6.0.9 for the October 2026 security fixes.
+## v0.3.0 - 2026-10-18
 
 **Added:**
 
@@ -15,7 +13,8 @@
 
 - Return connections for all database aliases used by background tasks after
   success or failure. Separate application databases could retain checked-out
-  connections between jobs and exhaust their PostgreSQL pools.
+  connections between jobs and exhaust their PostgreSQL pools (#62).
+- Update the development Django lock to 6.0.9 for the October 2026 security fixes.
 
 ## v0.2.1 - 2026-09-06
 
